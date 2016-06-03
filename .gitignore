@@ -1,0 +1,11 @@
+*.o
+*.out
+*.txt
+*.swp
+fileinput_gkl
+nonsymm
+power
+dense_fileinput_gkl
+dense_nonsymm
+
+
