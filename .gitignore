@@ -3,9 +3,9 @@
 *.txt
 *.swp
 fileinput_gkl
-nonsymm
-power
+sparse_nonsymm*
+dense_nonsymm*
+power*
 dense_fileinput_gkl
-dense_nonsymm
-
-
+sparse_data.txt
+dense_data.txt
