@@ -7,6 +7,5 @@ fileinput_gkl
 sparse_nonsymm
 dense_nonsymm
 power
-dense_fileinput_gkl
 sparse_data.txt
 dense_data.txt
