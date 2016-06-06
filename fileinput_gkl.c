@@ -18,10 +18,11 @@ int main(int argc, char *argv[]){
   int izero=0,ione=1;
   double dzero=ZERO, done=ONE;
 
-  int i, ii, j, lwork1, lwork2, m, max_bn, max_kk, max_kn, n, w, L ,K;
+  int i, ii, j, lwork1, lwork2, m, max_bn, max_kk, max_kn, n, w, L ,K, accuracy;
   double alpha, scl, tmp, tmp2, t1, t2, sum0, sum1;
   char mode;
   L=atoi(argv[1]);
+  accuracy = atoi(argv[3]);
   mode = argv[2][0];
   if(mode=='d') printf("dense mode だよ\n");
   else if(mode=='s') printf(",,,,,sparse mode だよ\n");
@@ -32,6 +33,7 @@ int main(int argc, char *argv[]){
   scanf("%d",&n);
   scanf("%d",&w);
 
+  printf("each row has %d elements.\n",w/m);
   int *indxA, *pntrbA, *pntreA;
   double *A;
 
@@ -80,7 +82,7 @@ int main(int argc, char *argv[]){
       w++;
     }
   }
-  resgkl_main_(&mode,&m,&n,&L,&K,matdescra,indxA,pntrbA,pntreA,A);
+  resgkl_main_(&mode,&accuracy,&m,&n,&L,&K,matdescra,indxA,pntrbA,pntreA,A);
 
   return 0;
 }
