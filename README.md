@@ -7,6 +7,6 @@ make
 \#下の引数は、得る特異対, s(sparse) or d(dense),accuracy = 10^(-x)  
 ./fileinput_gkl 30 s 7 < sparse_data.txt
 
-\#SystemDの時は
-make -f Makefile_4_SystemD
-\#する。
+\#SystemDの時は  
+make -f Makefile_4_SystemD  
+\#する。  
