@@ -14,7 +14,6 @@ module switch intel/15.0.6 intel/16.0.2
 ulimit -s unlimited
 export OMP_STACKSIZE=10G
 
-#aprun -n $LSB_PROCS -d $LSB_CPUS -N $LSB_PPN numactl -i all ./fileinput_gkl 10 s 6 < sparse_d.txt > attttt.txt
 aprun -n $LSB_PROCS -d $LSB_CPUS -N $LSB_PPN numactl -i all ./fileinput_gkl 10 s 20 < sparse_data10.txt > 10-10.txt
 aprun -n $LSB_PROCS -d $LSB_CPUS -N $LSB_PPN numactl -i all ./fileinput_gkl 20 s 20 < sparse_data10.txt > 10-20.txt
 aprun -n $LSB_PROCS -d $LSB_CPUS -N $LSB_PPN numactl -i all ./fileinput_gkl 30 s 20 < sparse_data10.txt > 10-30.txt

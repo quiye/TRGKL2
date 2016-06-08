@@ -27,7 +27,7 @@ SUBROUTINE RESGKL_MAIN(MODE,ACCURACY,M,N,L,K,MATDESCRA,INDXA,PNTRBA,PNTREA,A)
      !CALL SYSTEM_CLOCK(TMPT)
      !$ TMPT = omp_get_wtime()
      GKL_TIME = TMPT - STARTT
-     DO SELEK = 1, 6, 2 
+     DO SELEK = 1, 6!, 2 
         WRITE(*,*) 
         CPBK=BK
         CPUK=UK
