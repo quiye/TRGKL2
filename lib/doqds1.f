@@ -59,18 +59,26 @@
          
          OLDM = 1
          OLDN = N0
-
+         
          IF ( A(1) .GE. A(N0) ) THEN
-
+            
             IDIR = 1
-
+            
             TMP1 = A(1)
             DO J = 1, N0-1
-               CALL DLARTG2(TMP1,B(J),C1,S1,A(J))
-               WORK2(INDRV3+J) = C1
-               WORK2(INDRV4+J) = S1
-               B(J) = S1*A(J+1)
-               TMP1 = C1*A(J+1)
+               IF (B(J) .LE. EPS*TMP1) THEN
+                  A(J) = TMP1
+                  WORK2(INDRV3+J) = ONE
+                  WORK2(INDRV4+J) = ZERO
+                  B(J) = ZERO
+                  TMP1 = A(J+1)
+               ELSE
+                  CALL DLARTG2(TMP1,B(J),C1,S1,A(J))
+                  WORK2(INDRV3+J) = C1
+                  WORK2(INDRV4+J) = S1
+                  B(J) = S1*A(J+1)
+                  TMP1 = C1*A(J+1)
+               ENDIF
             ENDDO
             A(N0) = TMP1
 *     
@@ -81,21 +89,29 @@
      $                 WORK2(INDRV3+J),WORK2(INDRV4+J))
                ENDIF
             ENDDO
-
+            
          ELSE
-
+            
             IDIR = 2
-
+            
             TMP1 = A(N0)
             DO J = N0-1,1,-1
-               CALL DLARTG2(TMP1,B(J),C1,S1,A(J+1))
-               WORK2(INDRV1+J+1) = C1
-               WORK2(INDRV2+J+1) = S1
-               B(J) = S1*A(J)
-               TMP1 = C1*A(J)
+               IF (B(J) .LE. EPS*TMP1) THEN
+                  A(J+1) = TMP1
+                  WORK2(INDRV1+J+1) = ONE
+                  WORK2(INDRV2+J+1) = ZERO
+                  B(J) = ZERO
+                  TMP1 = A(J)
+               ELSE
+                  CALL DLARTG2(TMP1,B(J),C1,S1,A(J+1))
+                  WORK2(INDRV1+J+1) = C1
+                  WORK2(INDRV2+J+1) = S1
+                  B(J) = S1*A(J)
+                  TMP1 = C1*A(J)
+               ENDIF
             ENDDO
             A(1) = TMP1
-
+            
             DO J = N0-1, 1, -1
                IF( ( WORK2(INDRV1+J+1).NE.ONE ) .OR.
      $              ( WORK2(INDRV2+J+1).NE.ZERO ) ) THEN
@@ -151,55 +167,22 @@
 *     
          IF (IDIR .EQ. 1) THEN
 
-            TMP1 = A(M)
             DO J = M, N-3
-               IF (TMP1 .EQ. B(J)+TMP1) THEN
+               IF (B(J) .LE. ZERO) THEN
                   B(J) = -ZERO
                   WORK2(INDRV6+J) = -ZERO
                   M = J+1
-                  TMP1 = A(J+1)
-               ELSE
-                  TMP1 = A(J+1)*(TMP1/(TMP1+B(J)))
                ENDIF
             ENDDO
 
-            IF (TMP1 .EQ. B(N-2)+TMP1) THEN
-               B(N-2) = ZERO
-               TMP1 = A(N-1)
-            ELSE
-               TMP1 = A(N-1)*(TMP1/(TMP1+B(N-2)))
-            ENDIF
-
-            IF (TMP1 .EQ. B(N-1)+TMP1) THEN
-               B(N-1) = ZERO
-            ENDIF
-
          ELSE
-
-            TMP1 = A(N)
-            IF (TMP1 .EQ. B(N-1)+TMP1) THEN
-               B(N-1) = ZERO
-               TMP1 = A(N-1)
-            ELSE
-               TMP1 = A(N-1)*(TMP1/(TMP1+B(N-1)))
-            ENDIF
-
-            IF (TMP1 .EQ. B(N-2)+TMP1) THEN
-               B(N-2) = ZERO
-               TMP1 = A(N-2)
-            ELSE
-               TMP1 = A(N-2)*(TMP1/(TMP1+B(N-2)))
-            ENDIF
 
             M0 = M
             DO J = N-3, M, -1
-               IF (TMP1 .EQ. B(J)+TMP1) THEN
+               IF (B(J) .LE. ZERO) THEN
                   B(J) = -ZERO
                   WORK2(INDRV6+J) = -ZERO
                   IF (M0 .EQ. M) M0 = J+1
-                  TMP1 = A(J)
-               ELSE
-                  TMP1 = A(J)*(TMP1/(TMP1+B(J)))
                ENDIF
             ENDDO
             M = M0
@@ -338,7 +321,7 @@
             TAU = MIN(TAU,A(N))
             IF (TAU .EQ. ZERO) GO TO 350
             CALL DLARTG7(SIGMA,DESIG,TAU,T,DESIG0)
-
+            
             TMP2 = MIN(A(N),A(N-1))
             TMP3 = MAX(A(N),A(N-1))
             IF (TMP3 .GE. TWO*TMP2) THEN
@@ -346,9 +329,9 @@
             ELSE
                SIT = 0
             ENDIF
-
+            
             IF (T .LE. SIGMA .AND. SIT .EQ. 1) GO TO 350
-
+            
             TAU2 = MINVAL(A(M:N-1))
             IF (TAU .GE. TAU2) THEN
                IF (TAU2 .EQ. ZERO) GO TO 350
@@ -593,11 +576,19 @@
 *     
             TMP1 = WORK2(INDRV5+M)
             DO J = M, N-1
-               CALL DLARTG2(TMP1,WORK2(INDRV6+J),C1,S1,A(J))
-               WORK2(INDRV3+J) = C1
-               WORK2(INDRV4+J) = S1
-               B(J) = S1*WORK2(INDRV5+J+1)
-               TMP1 = C1*WORK2(INDRV5+J+1)
+               IF (WORK2(INDRV6+J) .LE. EPS*TMP1) THEN
+                  A(J) = TMP1
+                  WORK2(INDRV3+J) = ONE
+                  WORK2(INDRV4+J) = ZERO
+                  B(J) = ZERO
+                  TMP1 = WORK2(INDRV5+J+1)
+               ELSE
+                  CALL DLARTG2(TMP1,WORK2(INDRV6+J),C1,S1,A(J))
+                  WORK2(INDRV3+J) = C1
+                  WORK2(INDRV4+J) = S1
+                  B(J) = S1*WORK2(INDRV5+J+1)
+                  TMP1 = C1*WORK2(INDRV5+J+1)
+               ENDIF
             ENDDO
             A(N) = TMP1
 *     
@@ -637,21 +628,37 @@
 *     
  350        TMP1 = A(M)
             DO J = M, N-1
-               CALL DLARTG2(TMP1,B(J),C1,S1,A(J))
-               WORK2(INDRV1+J) = C1
-               WORK2(INDRV2+J) = S1
-               B(J) = S1*A(J+1)
-               TMP1 = C1*A(J+1)
+               IF (B(J) .LE. EPS*TMP1) THEN
+                  A(J) = TMP1
+                  WORK2(INDRV1+J) = ONE
+                  WORK2(INDRV2+J) = ZERO
+                  B(J) = ZERO
+                  TMP1 = A(J+1)
+               ELSE
+                  CALL DLARTG2(TMP1,B(J),C1,S1,A(J))
+                  WORK2(INDRV1+J) = C1
+                  WORK2(INDRV2+J) = S1
+                  B(J) = S1*A(J+1)
+                  TMP1 = C1*A(J+1)
+               ENDIF
             ENDDO
             A(N) = TMP1
 *     
             TMP1 = A(M)
             DO J = M, N-1
-               CALL DLARTG2(TMP1,B(J),C1,S1,A(J))
-               WORK2(INDRV3+J) = C1
-               WORK2(INDRV4+J) = S1
-               B(J) = S1*A(J+1)
-               TMP1 = C1*A(J+1)
+               IF (B(J) .LE. EPS*TMP1) THEN
+                  A(J) = TMP1
+                  WORK2(INDRV3+J) = ONE
+                  WORK2(INDRV4+J) = ZERO
+                  B(J) = ZERO
+                  TMP1 = A(J+1)
+               ELSE
+                  CALL DLARTG2(TMP1,B(J),C1,S1,A(J))
+                  WORK2(INDRV3+J) = C1
+                  WORK2(INDRV4+J) = S1
+                  B(J) = S1*A(J+1)
+                  TMP1 = C1*A(J+1)
+               ENDIF
             ENDDO
             A(N) = TMP1
 *     
@@ -679,28 +686,13 @@
                ENDIF
             ENDDO
 *     
- 400        TMP1 = A(M)
-            DO J = M, N-3
-               IF (B(J) .LE. SIGMA2 .OR. TMP1 .EQ. B(J)+TMP1) THEN
+ 400        DO J = M, N-3
+               IF (B(J) .LE. SIGMA2) THEN
                   B(J) = -SIGMA
                   WORK2(INDRV6+J) = -DESIG
                   M = J+1
-                  TMP1 = A(J+1)
-               ELSE
-                  TMP1 = A(J+1)*(TMP1/(TMP1+B(J)))
                ENDIF
             ENDDO
-
-            IF (B(N-2) .LE. SIGMA2 .OR. TMP1 .EQ. B(N-2)+TMP1) THEN
-               B(N-2) = ZERO
-               TMP1 = A(N-1)
-            ELSE
-               TMP1 = A(N-1)*(TMP1/(TMP1+B(N-2)))
-            ENDIF
- 
-            IF (B(N-1) .LE. SIGMA2 .OR. TMP1 .EQ. B(N-1)+TMP1) THEN
-               B(N-1) = ZERO
-            ENDIF
 *     
          ELSE
 *     
@@ -709,15 +701,23 @@
 
             TMP1 = A(N)
             DO J = N-1,M,-1
-               CALL DLARTG2(TMP1,B(J),C1,S1,WORK2(INDRV5+J+1))
-               WORK2(INDRV3+J+1) = C1
-               WORK2(INDRV4+J+1) = S1
-               WORK2(INDRV6+J) = S1*A(J)
-               TMP1 = C1*A(J)
+               IF (B(J) .LE. EPS*TMP1) THEN
+                  WORK2(INDRV5+J+1) = TMP1
+                  WORK2(INDRV3+J+1) = ONE
+                  WORK2(INDRV4+J+1) = ZERO
+                  WORK2(INDRV6+J) = ZERO
+                  TMP1 = A(J)
+               ELSE
+                  CALL DLARTG2(TMP1,B(J),C1,S1,WORK2(INDRV5+J+1))
+                  WORK2(INDRV3+J+1) = C1
+                  WORK2(INDRV4+J+1) = S1
+                  WORK2(INDRV6+J) = S1*A(J)
+                  TMP1 = C1*A(J)
+               ENDIF
             ENDDO
             WORK2(INDRV5+M) = TMP1
 *     
-            CALL DLAS2(WORK2(INDRV5+M), WORK2(INDRV6+M), 
+            CALL DLAS2(WORK2(INDRV5+M), WORK2(INDRV6+M),
      $           WORK2(INDRV5+M+1), TAU, TMP3)
             TAU = MIN(TAU,WORK2(INDRV5+M))
             IF (TAU .EQ. ZERO) GO TO 1350
@@ -732,7 +732,7 @@
             ENDIF
 
             IF (T .LE. SIGMA .AND. SIT .EQ. 1) GO TO 1350
-
+*     
             TAU2 = MINVAL(WORK2(INDRV5+M+1:INDRV5+N))
             IF (TAU .GE. TAU2) THEN
                IF (TAU2 .EQ. ZERO) GO TO 1350
@@ -822,7 +822,7 @@
             IF (TMP1 .EQ. TMP1) THEN
                TAU = MAX(TAU,TMP1)
             ENDIF
-
+            
             IF (TAU .GT. ZERO) GO TO 1125
             
             TAU=A(M)-HALF*B(M)
@@ -1014,11 +1014,19 @@
 *     
  1350       TMP1 = WORK2(INDRV5+N)
             DO J = N-1, M, -1
-               CALL DLARTG2(TMP1,WORK2(INDRV6+J),C1,S1,A(J+1))
-               WORK2(INDRV1+J+1) = C1
-               WORK2(INDRV2+J+1) = S1
-               B(J) = S1*WORK2(INDRV5+J)
-               TMP1 = C1*WORK2(INDRV5+J)
+               IF (WORK2(INDRV6+J) .LE. EPS*TMP1) THEN
+                  A(J+1) = TMP1
+                  WORK2(INDRV1+J+1) = ONE
+                  WORK2(INDRV2+J+1) = ZERO
+                  B(J) = ZERO
+                  TMP1 = WORK2(INDRV5+J)
+               ELSE
+                  CALL DLARTG2(TMP1,WORK2(INDRV6+J),C1,S1,A(J+1))
+                  WORK2(INDRV1+J+1) = C1
+                  WORK2(INDRV2+J+1) = S1
+                  B(J) = S1*WORK2(INDRV5+J)
+                  TMP1 = C1*WORK2(INDRV5+J)
+               ENDIF
             ENDDO
             A(M) = TMP1
 *     
@@ -1046,30 +1054,12 @@
                ENDIF
             ENDDO
 *     
- 410        TMP1 = A(N)
-            IF (B(N-1) .LE. SIGMA2 .OR. TMP1 .EQ. B(N-1)+TMP1) THEN
-               B(N-1) = ZERO
-               TMP1 = A(N-1)
-            ELSE
-               TMP1 = A(N-1)*(TMP1/(TMP1+B(N-1)))
-            ENDIF
-
-            IF (B(N-2) .LE. SIGMA2 .OR. TMP1 .EQ. B(N-2)+TMP1) THEN
-               B(N-2) = ZERO
-               TMP1 = A(N-2)
-            ELSE
-               TMP1 = A(N-2)*(TMP1/(TMP1+B(N-2)))
-            ENDIF
-
-            M0 = M
+ 410        M0 = M
             DO J = N-3, M, -1
-               IF (B(J) .LE. SIGMA2 .OR. TMP1 .EQ. B(J)+TMP1) THEN
+               IF (B(J) .LE. SIGMA2) THEN
                   B(J) = -SIGMA
                   WORK2(INDRV6+J) = -DESIG
                   IF (M0 .EQ. M) M0 = J+1
-                  TMP1 = A(J)
-               ELSE
-                  TMP1 = A(J)*(TMP1/(TMP1+B(J)))
                ENDIF
             ENDDO
             M = M0
