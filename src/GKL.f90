@@ -1,4 +1,4 @@
-SUBROUTINE GKL(mode,matdescra,indxA,pntrbA,pntreA,A,M,N,K,B,V,U,VNTEMP)
+SUBROUTINE GKL(mode,matdescra,indxA,pntrbA,pntreA,A,M,N,K,B,V,U,VNTEMP,beta)
   IMPLICIT NONE
 
   INTEGER indxA(*), pntrbA(*), pntreA(*)
@@ -9,7 +9,7 @@ SUBROUTINE GKL(mode,matdescra,indxA,pntrbA,pntreA,A,M,N,K,B,V,U,VNTEMP)
   INTEGER M,N,J,K
   INTEGER ISEED(4),ONEE
   PARAMETER (ONEE = 1)
-  DOUBLE PRECISION  ONE, ZERO
+  DOUBLE PRECISION  ONE, ZERO, beta
   PARAMETER ( ONE = 1.0D+0, ZERO=0.0D+0 )
   DOUBLE PRECISION NRM
   DOUBLE PRECISION B(K,K),V(N,K),U(M,K),VN(N),VNTEMP(N),VMTEMP(M)
@@ -52,10 +52,10 @@ SUBROUTINE GKL(mode,matdescra,indxA,pntrbA,pntreA,A,M,N,K,B,V,U,VNTEMP)
         CALL DGEMV('T',M,N,ONE,A,M,VMTEMP,1,ZERO,VNTEMP,1)
      END IF
      CALL CGS2(VNTEMP,V,N,K,J+1)
-     NRM = DNRM2(N,VNTEMP,1)
-     VNTEMP = VNTEMP / NRM
+     beta = DNRM2(N,VNTEMP,1)
+     VNTEMP = VNTEMP / beta 
      IF ( J < K - 1 ) THEN
-        B(J+1,J+2)=NRM
+        B(J+1,J+2)=beta
         V(:,J+2)=VNTEMP
      END IF
      J=J+1

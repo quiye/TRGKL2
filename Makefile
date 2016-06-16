@@ -4,7 +4,7 @@ LIB2= -Wl,--start-group \
    ${MKLROOT}/lib/intel64/libmkl_gnu_thread.a \
    -Wl,--end-group -lpthread -lm -ldl -lgfortran
 
-all: dlasru.o dbdsqru.o CGS2.o DGEBRDG_4_BISIDE.o DGEBRDG_K.o DGEBRDG_LP1.o ERR.o GKL.o RESGKL.o doqds1.o doqds2.o dlartg2.o dlartg3.o dlartg4.o dlartg5.o dlartg6.o dlartg7.o dfma0.o RESGKL_MAIN.o fileinput_gkl
+all: clean dlasru.o dbdsqru.o CGS2.o DGEBRDG_4_BISIDE.o DGEBRDG_K.o DGEBRDG_LP1.o ERR.o GKL.o RESGKL.o doqds1.o doqds2.o dlartg2.o dlartg3.o dlartg4.o dlartg5.o dlartg6.o dlartg7.o dfma0.o RESGKL_MAIN.o fileinput_gkl
 
 %.o: src/%.f90
 	gfortran -Wall -fopenmp -O3 -mtune=native -march=native -c -o src/$@ $<
