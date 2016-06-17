@@ -8,4 +8,4 @@ fileinput_gkl
 sparse_nonsymm
 dense_nonsymm
 power
-bidia*
+bidiag
