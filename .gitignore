@@ -1,4 +1,3 @@
-*.o
 *.o*
 *.e*
 *.out
@@ -9,5 +8,4 @@ fileinput_gkl
 sparse_nonsymm
 dense_nonsymm
 power
-sparse_data.txt
-dense_data.txt
+bidia*

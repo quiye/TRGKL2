@@ -24,8 +24,8 @@ int main(int argc, char *argv[]){
   L=atoi(argv[1]);
   accuracy = atoi(argv[3]);
   mode = argv[2][0];
-  if(mode=='d') printf("dense mode だよ\n");
-  else if(mode=='s') printf(",,,,,sparse mode だよ\n");
+  if(mode=='d') printf("runnning: dense mode\n");
+  else if(mode=='s') printf("runnning: sparse mode\n");
   else {printf("error: d[dense] か s[sparse] を指定して下さい。"); return 0;}
 
   K=L*2;

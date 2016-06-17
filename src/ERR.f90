@@ -18,25 +18,24 @@ DOUBLE PRECISION FUNCTION ERR(mode,matdescra,indxA,pntrbA,pntreA,A,M,N,K,L,BK,VK
   DMM = K
   DL = L
 
-  SUM=0
-  DO S=0,L-1
-     IF(MODE=='s') THEN
-        CALL MKL_DCSRMV( 'N', M, N, ONE, matdescra, A, indxA, &
-             pntrbA,pntreA, VK(:,S+1), ZERO, VMTEMP(1))
-     ELSE IF(MODE=='d') THEN
-        CALL DGEMV('N',M,N,ONE,A,M,VK(:,S+1),1,ZERO,VMTEMP,1)
-     END IF
-     VMTEMP = VMTEMP - BK(S+1,S+1)*UK(:,S+1)
-     IF(MODE=='s') THEN
-        CALL MKL_DCSRMV( 'T', M, N, ONE, matdescra, A, indxA, &
-             pntrbA,pntreA, UK(:,S+1), ZERO, VNTEMP(1))
-     ELSE IF(MODE=='d') THEN
-        CALL DGEMV('T',M,N,ONE,A,M,UK(:,S+1),1,ZERO,VNTEMP,1)
-     END IF
-     VNTEMP = VNTEMP - BK(S+1,S+1)*VK(:,S+1)
-     SUM = SUM + DNRM2(M,VMTEMP,1) !収束が早い
-     SUM = SUM + DNRM2(N,VNTEMP,1) !収束が遅い
-  END DO
-  ERR = SUM / DL
+  SUM=0.0
+  S = L
+  IF(MODE=='s') THEN
+     CALL MKL_DCSRMV( 'N', M, N, ONE, matdescra, A, indxA, &
+          pntrbA,pntreA, VK(:,S), ZERO, VMTEMP(1))
+  ELSE IF(MODE=='d') THEN
+     CALL DGEMV('N',M,N,ONE,A,M,VK(:,S),1,ZERO,VMTEMP,1) !VK(:S)ってNじゃない?
+  END IF
+  VMTEMP = VMTEMP - BK(S,S)*UK(:,S)
+  IF(MODE=='s') THEN
+     CALL MKL_DCSRMV( 'T', M, N, ONE, matdescra, A, indxA, &
+          pntrbA,pntreA, UK(:,S), ZERO, VNTEMP(1))
+  ELSE IF(MODE=='d') THEN
+     CALL DGEMV('T',M,N,ONE,A,M,UK(:,S),1,ZERO,VNTEMP,1)
+  END IF
+  VNTEMP = VNTEMP - BK(S,S)*VK(:,S)
+  SUM = SUM + DNRM2(M,VMTEMP,1) !収束が早い
+  SUM = SUM + DNRM2(N,VNTEMP,1) !収束が遅い
+  ERR = SUM
   RETURN
 END FUNCTION ERR
