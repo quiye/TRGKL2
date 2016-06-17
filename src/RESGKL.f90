@@ -46,7 +46,6 @@ SUBROUTINE RESGKL(MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,be
      DO I =1 ,L
         BL(I,I) = BD(I)
      END DO
-!     write(*,*) Q(K,1:l)
      DO I = 1,L
         HIGE(I) = beta * Q(k,i)
      END DO
@@ -212,7 +211,6 @@ SUBROUTINE RESGKL(MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,be
      DO I = 1,L
         HIGE(I) = beta * Q(I,K)
      END DO
-     !write(*,*) beta,Q(L,K),beta * Q(L,K) ,hige(l)
      
      CALL DGEMM('N','T',M,L,K,ONE,UK,M,Q,K,ZERO,UM,M)
      CALL DGEMM('N','N',N,L,K,ONE,VK,N,P,K,ZERO,VM,N)
