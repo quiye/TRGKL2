@@ -1,4 +1,4 @@
-SUBROUTINE RESGKL(MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,beta,INFO,SELEK)
+SUBROUTINE RESGKL(J,MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,INFO,SELEK)
   IMPLICIT NONE
 
   INTEGER INDXA(*), PNTRBA(*), PNTREA(*)
@@ -12,7 +12,7 @@ SUBROUTINE RESGKL(MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,be
   DOUBLE PRECISION NRM,CDUMMY(1,1),beta
   DOUBLE PRECISION BK(K,K),CPBK(K,K),VK(N,K),UK(M,K),VPLUS(N),VMTEMP(M),BD(K),BE(K)
   DOUBLE PRECISION VNTEMP(N),VL(K,K)
-  DOUBLE PRECISION DNRM2,VM(N,K),UM(M,K),HIGE(L),BL(K,K),DLAMCH,WORK2(K*8)
+  DOUBLE PRECISION DNRM2,VM(N,K),UM(M,K),HIGE(L),DLAMCH,WORK2(K*8)
   DOUBLE PRECISION Q(K,K),P(K,K),TAU(L),Q_mat(K,K)
   DOUBLE PRECISION,ALLOCATABLE :: WORK(:)
   EXTERNAL CGS2,DLAMCH,DOQDS2,DGEBRD_2
@@ -22,15 +22,48 @@ SUBROUTINE RESGKL(MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,be
   ALLOCATE (WORK(LWORK))
   WORK = ONE
   WORK(1) = ONE+2.0D0*DLAMCH('E')
-  CPBK=BK
-  BL = 0
+  
+  VK(: ,J+1) = VPLUS
+  NRM = 0.0D+0
+  DO WHILE(J < K)
+     IF(MODE=='s') THEN
+        CALL MKL_DCSRMV( 'N', M, N, ONE, MATDESCRA, A, INDXA, &
+             PNTRBA,PNTREA, VK(:,J+1), ZERO, VMTEMP(1))
+     ELSE IF(MODE=='d') THEN
+        CALL DGEMV('N',M,N,ONE,A,M,VK(:,J+1),1,ZERO,VMTEMP,1)
+     END IF
+     CALL CGS2(VMTEMP,UK,M,K,J)
+     NRM = DNRM2(M,VMTEMP,1)
+     VMTEMP = VMTEMP / NRM
+     BK(J+1,J+1) = NRM
+     UK(:,J+1) = VMTEMP
+     IF(MODE=='s') THEN
+        CALL MKL_DCSRMV( 'T', M, N, ONE, MATDESCRA, A, INDXA, &
+             PNTRBA,PNTREA, UK(:,J+1), ZERO, VNTEMP(1))
+     ELSE IF(MODE=='d') THEN
+        CALL DGEMV('T',M,N,ONE,A,M,UK(:,J+1),1,ZERO,VNTEMP,1)
+     END IF
+     CALL CGS2(VNTEMP,VK,N,K,J+1)
+     NRM = DNRM2(N,VNTEMP,1)
+     VNTEMP = VNTEMP / NRM
+     IF(J < K - 1) THEN
+        BK(J+1,J+2) = NRM
+        VK(: ,J+2) = VNTEMP
+     END IF
+     J = J+1
+  END DO
+  VPLUS = VNTEMP
+  beta = NRM
+  J = L
+
+  cpbk=bk
   Q=0
   DO I = 1,K
      Q(I,I)=1
   END DO
   P=Q
   Q_mat=Q
-  IF (SELEK == 1) THEN
+   IF (SELEK == 1) THEN
      ! with lapack 1.0 QR
      !  WRITE(*,*) "GIVENS回転(DGEBRDG_LP1)+QR法(DBDSQRU)+両側(DGEMM)"
      CALL DGEBRDG_4_BISIDE(L+1,BK,K,Q,P)
@@ -41,19 +74,14 @@ SUBROUTINE RESGKL(MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,be
      DO I = 1,K-1
         BE(I)=BK(I,I+1)
      END DO
-     
+     BK=0
      CALL DBDSQRU( 'U',K,K,K,0,BD,BE,P,K,Q,K,CDUMMY,K,WORK,IINFO )
      DO I =1 ,L
-        BL(I,I) = BD(K + 1 - I) !
+        BK(I,I) = BD(I)
      END DO
      DO I = 1,L
-        HIGE(I) = beta * Q(k,K+1-I) !
+        HIGE(I) = beta * Q(k,i)
      END DO
-     DO I = 1,L
-        Q(1:K,I) = Q(1:K,K+1-I) !
-        P(I,1:K) = P(K+1-I,1:K) !
-     END DO
-      
      CALL DGEMM('N','N',M,L,K,ONE,UK,M,Q,K,ZERO,UM,M)
      CALL DGEMM('N','T',N,L,K,ONE,VK,N,P,K,ZERO,VM,N)
   ELSE IF ( SELEK==2 ) THEN
@@ -79,9 +107,15 @@ SUBROUTINE RESGKL(MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,be
      CALL DGEQRF(K,L,CPBK,K,TAU,WORK,LWORK,IINFO)
      CALL DORMQR('R','N',M,K,L,CPBK,K,TAU,UK,M,WORK,LWORK,IINFO )
      UM(:,1:L)=UK(:,1:L)
+     BK=0
      DO I = 1,L
-        BL(I,I:L)=CPBK(I,I:L)
+        BK(I,I:L)=CPBK(I,I:L)
      END DO
+     CALL DORMQR('R','N',K,K,L,CPBK,K,TAU,Q_mat,K,WORK,LWORK,IINFO )
+     DO I = 1,L
+        HIGE(I) = beta * Q_mat(k,i)
+     END DO
+
   
 !  ELSE IF(SELEK==1) THEN
 !     !  WRITE(*,*) "GIVENS回転(DGEBRDG_LP1)+QR法(DBDSQR)+両側(DGEMM)"
@@ -95,7 +129,7 @@ SUBROUTINE RESGKL(MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,be
 !     END DO
 !     CALL DBDSQR( 'U',K,K,K,0,BD,BE,P,K,Q,K,CDUMMY,K,WORK,IINFO )
 !     DO I =1 ,L
-!        BL(I,I) = BD(I)
+!        BK(I,I) = BD(I)
 !     END DO
 !     CALL DGEMM('N','N',M,L,K,ONE,UK,M,Q,K,ZERO,UM,M)
 !     CALL DGEMM('N','T',N,L,K,ONE,VK,N,P,K,ZERO,VM,N)
@@ -122,7 +156,7 @@ SUBROUTINE RESGKL(MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,be
 !     CALL DORMQR('R','N',M,K,L,CPBK,K,TAU,UK,M,WORK,LWORK,IINFO )
 !     UM(:,1:L)=UK(:,1:L)
 !     DO I = 1,L
-!        BL(I,I:L)=CPBK(I,I:L)
+!        BK(I,I:L)=CPBK(I,I:L)
 !     END DO
   ELSE IF ( SELEK==6) THEN
      ! そもそも、初回はDGEBRDする必要がない
@@ -138,8 +172,13 @@ SUBROUTINE RESGKL(MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,be
      CALL DGEQRF(K,L,CPBK,K,TAU,WORK,LWORK,IINFO)
      CALL DORMQR('R','N',M,K,L,CPBK,K,TAU,UK,M,WORK,LWORK,IINFO )
      UM=UK
+     BK=0
      DO I = 1,L
-        BL(I,I:L)=CPBK(I,I:L)
+        BK(I,I:L)=CPBK(I,I:L)
+     END DO
+     CALL DORMQR('R','N',K,K,L,CPBK,K,TAU,Q_mat,K,WORK,LWORK,IINFO )
+     DO I = 1,L
+        HIGE(I) = beta * Q_mat(k,i)
      END DO
 
   ELSE IF (SELEK==5) THEN
@@ -150,20 +189,16 @@ SUBROUTINE RESGKL(MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,be
         INFO = 2
         RETURN
      END IF
-     DO I =1 ,L
-        BL(I,I) = VNTEMP(k-I+1)
-     END DO
      DO I = 1,L
-        HIGE(I) = beta * BK(K,K+1-I)
+        HIGE(I) = beta * BK(k,i)
      END DO
-     
-     DO I = 1,L
-        VL(1:K,I) = VL(1:K,K+1-I) !
-        BK(1:K,I) = BK(1:K,K+1-I) !
-     END DO
-     
      CALL DGEMM('N','N',N,L,K,ONE,VK,N,VL,K,ZERO,VM,N)
      CALL DGEMM('N','N',M,L,K,ONE,UK,M,BK,K,ZERO,UM,M)
+     BK=0
+     DO I =1 ,L
+        BK(I,I) = VNTEMP(I)
+     END DO
+ 
   ELSE IF(SELEK==4) THEN
      !  WRITE(*,*) "GIVENS回転(DGEBRDG_LP1)+OQDS2法(DOQDS2)+片側(DORMQR)"
 
@@ -186,8 +221,13 @@ SUBROUTINE RESGKL(MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,be
      CALL DGEQRF(K,L,CPBK,K,TAU,WORK,LWORK,IINFO)
      CALL DORMQR('R','N',M,K,L,CPBK,K,TAU,UK,M,WORK,LWORK,IINFO )
      UM=UK
+     BK=0
      DO I = 1,L
-        BL(I,I:L)=CPBK(I,I:L)
+        BK(I,I:L)=CPBK(I,I:L)
+     END DO
+     CALL DORMQR('R','N',K,K,L,CPBK,K,TAU,Q_mat,K,WORK,LWORK,IINFO )
+     DO I = 1,L
+        HIGE(I) = beta * Q_mat(k,i)
      END DO
   ELSE IF(SELEK==3) THEN
      !WRITE(*,*) "GIVENS回転(DGEBRDG_LP1)+OQDS1法(DOQDS1)+両側(DGEMM)"
@@ -202,15 +242,12 @@ SUBROUTINE RESGKL(MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,be
         BE(I)=BK(I,I+1)
      END DO
      CALL DOQDS1('L',K,BD,BE,P,K,Q,K,WORK,WORK2,INFO)
+     BK=0
      DO I =1 ,L
-        BL(I,I) = BD(K-I+1)
+        BK(I,I) = BD(I)
      END DO
      DO I = 1,L
-        HIGE(I) = beta * Q(K-I+1,K)
-     END DO
-     DO I = 1,L
-        Q(I,1:K) = Q(K+1-I,1:K) !
-        P(1:K,I) = P(1:K,K+1-I) !
+        HIGE(I) = beta * Q(I,K)
      END DO
      
      CALL DGEMM('N','T',M,L,K,ONE,UK,M,Q,K,ZERO,UM,M)
@@ -223,43 +260,8 @@ SUBROUTINE RESGKL(MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,be
      !CALL DGEMV('N',M,N,ONE,A,M,VPLUS,1,ZERO,VMTEMP,1)
   !END IF
   !CALL DGEMV('T',M,L,ONE,UM,M,VMTEMP,1,ZERO,HIGE,1)
-  
-  BL(1: L,L+1) = HIGE
-  VM(: ,L+1) = VPLUS
-  J = L
-  NRM = 0.0
-  DO WHILE(J < K)
-     IF(MODE=='s') THEN
-        CALL MKL_DCSRMV( 'N', M, N, ONE, MATDESCRA, A, INDXA, &
-             PNTRBA,PNTREA, VM(:,J+1), ZERO, VMTEMP(1))
-     ELSE IF(MODE=='d') THEN
-        CALL DGEMV('N',M,N,ONE,A,M,VM(:,J+1),1,ZERO,VMTEMP,1)
-     END IF
-     CALL CGS2(VMTEMP,UM,M,K,J)
-     NRM = DNRM2(M,VMTEMP,1)
-     VMTEMP = VMTEMP / NRM
-     BL(J+1,J+1) = NRM
-     UM(:,J+1) = VMTEMP
-
-     IF(MODE=='s') THEN
-        CALL MKL_DCSRMV( 'T', M, N, ONE, MATDESCRA, A, INDXA, &
-             PNTRBA,PNTREA, UM(:,J+1), ZERO, VNTEMP(1))
-     ELSE IF(MODE=='d') THEN
-        CALL DGEMV('T',M,N,ONE,A,M,UM(:,J+1),1,ZERO,VNTEMP,1)
-     END IF
-     CALL CGS2(VNTEMP,VM,N,K,J+1)
-     NRM = DNRM2(N,VNTEMP,1)
-     VNTEMP = VNTEMP / NRM
-     IF(J < K - 1) THEN
-        BL(J+1,J+2) = NRM
-        VM(: ,J+2) = VNTEMP
-     END IF
-     J = J+1
-  END DO
-  VPLUS = VNTEMP
-  BK = BL
+  BK(1: L,L+1) = HIGE
   VK = VM
   UK = UM
-  beta = NRM
   RETURN
 END SUBROUTINE RESGKL
