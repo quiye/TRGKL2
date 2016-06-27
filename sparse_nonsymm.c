@@ -1,13 +1,14 @@
 #include<stdio.h>
 #include<stdlib.h>
 int main(int argc,char *argv[]){
-  int i, j, k, l, m, n, w;
+  int i, j, k, l,s, m, n, w;
   FILE *fp;
-  fp = fopen(argv[4],"w");
-  m=atoi(argv[1]);
-  n=atoi(argv[2]);
-  w=atoi(argv[3]);
-  srand(1);
+  fp = fopen(argv[5],"w");
+  m=atoi(argv[2]);
+  n=atoi(argv[3]);
+  w=atoi(argv[4]);
+  s=atoi(argv[1]);
+  srand(s);
   double a;
   fprintf(fp,"%d\n",m);
   fprintf(fp,"%d\n",n);

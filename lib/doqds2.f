@@ -272,7 +272,6 @@
             CALL DLAS2(A(N-1), B(N-1), A(N), TAU, TMP3)
             TAU = MIN(TAU,A(N))
             IF (TAU .EQ. ZERO) GO TO 350
-            CALL DLARTG7(SIGMA,DESIG,TAU,T,DESIG0)
             
             TMP2 = MIN(A(N),A(N-1))
             TMP3 = MAX(A(N),A(N-1))
@@ -282,6 +281,7 @@
                SIT = 0
             ENDIF
             
+            CALL DLARTG7(SIGMA,DESIG,TAU,T,DESIG0)
             IF (T .LE. SIGMA .AND. SIT .EQ. 1) GO TO 350
             
             TAU2 = MINVAL(A(M:N-1))
@@ -649,7 +649,6 @@
      $           WORK2(INDRV5+M+1), TAU, TMP3)
             TAU = MIN(TAU,WORK2(INDRV5+M))
             IF (TAU .EQ. ZERO) GO TO 1350
-            CALL DLARTG7(SIGMA,DESIG,TAU,T,DESIG0)
 
             TMP2 = MIN(WORK2(INDRV5+M),WORK2(INDRV5+M+1))
             TMP3 = MAX(WORK2(INDRV5+M),WORK2(INDRV5+M+1))
@@ -659,6 +658,7 @@
                SIT = 0
             ENDIF
 
+            CALL DLARTG7(SIGMA,DESIG,TAU,T,DESIG0)
             IF (T .LE. SIGMA .AND. SIT .EQ. 1) GO TO 1350
 *     
             TAU2 = MINVAL(WORK2(INDRV5+M+1:INDRV5+N))

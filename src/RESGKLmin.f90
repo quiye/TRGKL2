@@ -77,10 +77,14 @@ SUBROUTINE RESGKL(J,MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,
      BK=0
      CALL DBDSQRU( 'U',K,K,K,0,BD,BE,P,K,Q,K,CDUMMY,K,WORK,IINFO )
      DO I =1 ,L
-        BK(I,I) = BD(I)
+        BK(I,I) = BD(k+1-i)
      END DO
      DO I = 1,L
-        HIGE(I) = beta * Q(k,i)
+        HIGE(I) = beta * Q(k,k+1-I)
+     END DO
+     DO I = 1, L
+        Q(1:K,I) = Q(1:K,K+1-I)
+        P(I,1:K) = P(K+1-I,1:K)
      END DO
      CALL DGEMM('N','N',M,L,K,ONE,UK,M,Q,K,ZERO,UM,M)
      CALL DGEMM('N','T',N,L,K,ONE,VK,N,P,K,ZERO,VM,N)
@@ -190,13 +194,19 @@ SUBROUTINE RESGKL(J,MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,
         RETURN
      END IF
      DO I = 1,L
-        HIGE(I) = beta * BK(k,i)
+        HIGE(I) = beta * BK(k,k+1-I)
      END DO
+
+     DO I = 1,L
+         VL(1:K,I) = VL(1:K,K+1-I)
+         BK(1:K,I) = BK(1:K,K+1-I)
+     END DO
+
      CALL DGEMM('N','N',N,L,K,ONE,VK,N,VL,K,ZERO,VM,N)
      CALL DGEMM('N','N',M,L,K,ONE,UK,M,BK,K,ZERO,UM,M)
      BK=0
      DO I =1 ,L
-        BK(I,I) = VNTEMP(I)
+        BK(I,I) = VNTEMP(k+1-I)
      END DO
  
   ELSE IF(SELEK==4) THEN
@@ -244,12 +254,15 @@ SUBROUTINE RESGKL(J,MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,
      CALL DOQDS1('L',K,BD,BE,P,K,Q,K,WORK,WORK2,INFO)
      BK=0
      DO I =1 ,L
-        BK(I,I) = BD(I)
+        BK(I,I) = BD(k-I+1)
      END DO
      DO I = 1,L
-        HIGE(I) = beta * Q(I,K)
+        HIGE(I) = beta * Q(K-I+1,K)
      END DO
-     
+     DO I = 1,L
+        Q(I,1:K) = Q(K+1-I,1:K)
+        P(1:K,I) = P(1:K,K+1-I)
+     END DO
      CALL DGEMM('N','T',M,L,K,ONE,UK,M,Q,K,ZERO,UM,M)
      CALL DGEMM('N','N',N,L,K,ONE,VK,N,P,K,ZERO,VM,N)
   END IF

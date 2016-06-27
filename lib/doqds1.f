@@ -7,7 +7,7 @@
       INTEGER N0, INFO, LDSU, LDSVT, ISUB, MAXITER, SIT
       DOUBLE PRECISION A(*), B(*), WORK(N0,*)
       DOUBLE PRECISION SU(LDSU, *), SVT(LDSVT, *), WORK2(*)
-      INTEGER N, M, I, J, K, OLDM, OLDN, IDIR, M0
+      INTEGER N, M, I, J, K, OLDM, OLDN, IDIR
       INTEGER INDRV1, INDRV2, INDRV3, INDRV4, INDRV5, INDRV6
       DOUBLE PRECISION TMP1, TMP2, TMP3, TMP4
       DOUBLE PRECISION TAU, TAU2
@@ -155,41 +155,13 @@
       M = 1
       N = N0
 *     
-      IF (N-M+1 .GE. 3) THEN
-
-         IF (M .GT. OLDN .OR. N .LT. OLDM) THEN
-            IF ( A(M) .GE. A(N) ) THEN
-               IDIR = 1
-            ELSE
-               IDIR = 2
-            ENDIF
+      DO J = M, N-3
+         IF (B(J) .LE. ZERO) THEN
+            B(J) = -ZERO
+            WORK2(INDRV6+J) = -ZERO
+            M = J+1
          ENDIF
-*     
-         IF (IDIR .EQ. 1) THEN
-
-            DO J = M, N-3
-               IF (B(J) .LE. ZERO) THEN
-                  B(J) = -ZERO
-                  WORK2(INDRV6+J) = -ZERO
-                  M = J+1
-               ENDIF
-            ENDDO
-
-         ELSE
-
-            M0 = M
-            DO J = N-3, M, -1
-               IF (B(J) .LE. ZERO) THEN
-                  B(J) = -ZERO
-                  WORK2(INDRV6+J) = -ZERO
-                  IF (M0 .EQ. M) M0 = J+1
-               ENDIF
-            ENDDO
-            M = M0
-
-         ENDIF
-
-      ENDIF
+      ENDDO
 *     
       B(N) = ZERO
       WORK2(INDRV6+N) = ZERO
@@ -320,7 +292,6 @@
             CALL DLAS2(A(N-1), B(N-1), A(N), TAU, TMP3)
             TAU = MIN(TAU,A(N))
             IF (TAU .EQ. ZERO) GO TO 350
-            CALL DLARTG7(SIGMA,DESIG,TAU,T,DESIG0)
             
             TMP2 = MIN(A(N),A(N-1))
             TMP3 = MAX(A(N),A(N-1))
@@ -330,6 +301,7 @@
                SIT = 0
             ENDIF
             
+            CALL DLARTG7(SIGMA,DESIG,TAU,T,DESIG0)
             IF (T .LE. SIGMA .AND. SIT .EQ. 1) GO TO 350
             
             TAU2 = MINVAL(A(M:N-1))
@@ -438,7 +410,8 @@
             IF (TMP2 .LE. ZERO) GO TO 350
             TAU=MIN(TAU,TMP2)
 *     
- 125        IF (TAU .EQ. ZERO) GO TO 350
+ 125        continue
+            IF (TAU .EQ. ZERO) GO TO 350
             CALL DLARTG7(SIGMA,DESIG,TAU,T,DESIG0)
             IF (T .LE. SIGMA .AND. SIT .EQ. 1) GO TO 350
 *     
@@ -686,14 +659,6 @@
                ENDIF
             ENDDO
 *     
- 400        DO J = M, N-3
-               IF (B(J) .LE. SIGMA2) THEN
-                  B(J) = -SIGMA
-                  WORK2(INDRV6+J) = -DESIG
-                  M = J+1
-               ENDIF
-            ENDDO
-*     
          ELSE
 *     
             OLDM = M
@@ -721,7 +686,6 @@
      $           WORK2(INDRV5+M+1), TAU, TMP3)
             TAU = MIN(TAU,WORK2(INDRV5+M))
             IF (TAU .EQ. ZERO) GO TO 1350
-            CALL DLARTG7(SIGMA,DESIG,TAU,T,DESIG0)
 
             TMP2 = MIN(WORK2(INDRV5+M),WORK2(INDRV5+M+1))
             TMP3 = MAX(WORK2(INDRV5+M),WORK2(INDRV5+M+1))
@@ -731,6 +695,7 @@
                SIT = 0
             ENDIF
 
+            CALL DLARTG7(SIGMA,DESIG,TAU,T,DESIG0)
             IF (T .LE. SIGMA .AND. SIT .EQ. 1) GO TO 1350
 *     
             TAU2 = MINVAL(WORK2(INDRV5+M+1:INDRV5+N))
@@ -1010,7 +975,7 @@
      $              WORK2(INDRV1+2*M),WORK2(INDRV2+2*M))
             ENDIF
 *     
-            GO TO 410
+            GO TO 400
 *     
  1350       TMP1 = WORK2(INDRV5+N)
             DO J = N-1, M, -1
@@ -1054,17 +1019,15 @@
                ENDIF
             ENDDO
 *     
- 410        M0 = M
-            DO J = N-3, M, -1
-               IF (B(J) .LE. SIGMA2) THEN
-                  B(J) = -SIGMA
-                  WORK2(INDRV6+J) = -DESIG
-                  IF (M0 .EQ. M) M0 = J+1
-               ENDIF
-            ENDDO
-            M = M0
-*     
          ENDIF
+*     
+ 400     DO J = M, N-3
+            IF (B(J) .LE. SIGMA2) THEN
+               B(J) = -SIGMA
+               WORK2(INDRV6+J) = -DESIG
+               M = J+1
+            ENDIF
+         ENDDO
 *     
       ENDDO
       INFO = 2
