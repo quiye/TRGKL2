@@ -9,3 +9,4 @@ sparse_nonsymm
 dense_nonsymm
 power
 bidiag
+*pycache*
