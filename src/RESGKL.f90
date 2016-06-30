@@ -256,12 +256,11 @@ SUBROUTINE RESGKL(J,MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,
      !  WRITE(*,*) "GIVENSrotation+ヤコビ法(DGESVJ)+両側(DGEMM)"
      ! 作成中
      CALL DGEBRDG_4_BISIDE(L+1,BK,K,Q,P)
-     
-     I=M
-     CALL DGESVJ('U','C','V',K,K,BK,K,VNTEMP,I,VL,K,WORK,LWORK,IINFO)
-     
-     CALL DGEMM('T','N',K,L,K,ONE,P,K,VL,K,ZERO,TMPKL,K)
-     CALL DGEMM('N','N',N,L,K,ONE,VK,N,TMPKL,K,ZERO,VM,N)
+     p=transpose(p)
+     CALL DGESVJ('U','C','A',K,K,BK,K,VNTEMP,K,P,K,WORK,LWORK,IINFO)
+     !CALL DGEMM('T','N',K,L,K,ONE,P,K,VL,K,ZERO,TMPKL,K)
+     !p=transpose(p)
+     CALL DGEMM('N','N',N,L,K,ONE,VK,N,P,K,ZERO,VM,N)
      
      CALL DGEMM('N','N',K,L,K,ONE,Q,K,BK,K,ZERO,TMPKL,K)
      DO I = 1,L
