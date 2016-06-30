@@ -7,7 +7,7 @@
       INTEGER N0, INFO, LDSU, LDSVT, ISUB, MAXITER, SIT
       DOUBLE PRECISION A(*), B(*), WORK(N0,*)
       DOUBLE PRECISION SU(LDSU, *), SVT(LDSVT, *), WORK2(*)
-      INTEGER N, M, I, J, K, OLDM, OLDN, IDIR
+      INTEGER N, M, M0, I, J, K, OLDM, OLDN, IDIR
       INTEGER INDRV1, INDRV2, INDRV3, INDRV4, INDRV5, INDRV6
       DOUBLE PRECISION TMP1, TMP2, TMP3, TMP4
       DOUBLE PRECISION TAU, TAU2
@@ -155,13 +155,79 @@
       M = 1
       N = N0
 *     
-      DO J = M, N-3
-         IF (B(J) .LE. ZERO) THEN
-            B(J) = -ZERO
-            WORK2(INDRV6+J) = -ZERO
-            M = J+1
+      IF (N-M+1 .GE. 3) THEN
+         
+         IF (M .GT. OLDN .OR. N .LT. OLDM) THEN
+            IF ( A(M) .GE. A(N) ) THEN
+               IDIR = 1
+            ELSE
+               IDIR = 2
+            ENDIF
          ENDIF
-      ENDDO
+*     
+         IF (IDIR .EQ. 1) THEN
+            
+            TMP1 = A(M)
+            DO J = M, N-3
+               IF (B(J) .LE. EPS*TMP1) THEN
+                  B(J) = -ZERO
+                  WORK2(INDRV6+J) = -ZERO
+                  M = J+1
+                  TMP1 = A(J+1)
+               ELSE
+                  CALL DLARTG4(TMP1,B(J),C1)
+                  TMP1 = C1*A(J+1)
+               ENDIF
+            ENDDO
+            
+            IF (B(N-2) .LE. EPS*TMP1) THEN
+               B(N-2) = ZERO
+               TMP1 = A(N-1)
+            ELSE
+               CALL DLARTG4(TMP1,B(N-2),C1)
+               TMP1 = C1*A(N-1)
+            ENDIF
+            
+            IF (B(N-1) .LE. EPS*TMP1) THEN
+               B(N-1) = ZERO
+            ENDIF
+            
+         ELSE
+            
+            TMP1 = A(N)
+            IF (B(N-1) .LE. EPS*TMP1) THEN
+               B(N-1) = ZERO
+               TMP1 = A(N-1)
+            ELSE
+               CALL DLARTG4(TMP1,B(N-1),C1)
+               TMP1 = C1*A(N-1)
+            ENDIF
+            
+            IF (B(N-2) .LE. EPS*TMP1) THEN
+               B(N-2) = ZERO
+               TMP1 = A(N-2)
+            ELSE
+               CALL DLARTG4(TMP1,B(N-2),C1)
+               TMP1 = C1*A(N-2)
+            ENDIF
+            
+            M0 = M
+            DO J = N-3, M, -1
+               IF (B(J) .LE. EPS*TMP1) THEN
+                  B(J) = -ZERO
+                  WORK2(INDRV6+J) = -ZERO
+                  IF (M0 .EQ. M) M0 = J+1
+                  TMP1 = A(J)
+               ELSE
+                  CALL DLARTG4(TMP1,B(J),C1)
+                  TMP1 = C1*A(J)
+               ENDIF
+            ENDDO
+            M = M0
+            
+         ENDIF
+         
+      ENDIF
 *     
       B(N) = ZERO
       WORK2(INDRV6+N) = ZERO
@@ -410,8 +476,7 @@
             IF (TMP2 .LE. ZERO) GO TO 350
             TAU=MIN(TAU,TMP2)
 *     
- 125        continue
-            IF (TAU .EQ. ZERO) GO TO 350
+ 125        IF (TAU .EQ. ZERO) GO TO 350
             CALL DLARTG7(SIGMA,DESIG,TAU,T,DESIG0)
             IF (T .LE. SIGMA .AND. SIT .EQ. 1) GO TO 350
 *     

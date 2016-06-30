@@ -19,11 +19,11 @@ SUBROUTINE RESGKL_MAIN(MODE,ACCURACY,M,N,L,K,MATDESCRA,INDXA,PNTRBA,PNTREA,A)
   print *, "MODE = ",MODE
   WRITE (*,*)"M N K L"
   WRITE (*,*)M,N,K,L
-  DO W = 1,10
+  DO W = 1,1
      CALL DLARNV(1,ISEED,N,VPLUS_ORIG)
      NRM = DNRM2(N,VPLUS_ORIG,1)
      VPLUS_ORIG = VPLUS_ORIG / NRM
-     DO SELEK = 7, 3 , -2
+     DO SELEK = 3, 7 , 2
         !$ STARTT = omp_get_wtime()
         !CALL SYSTEM_CLOCK(STARTT)
         WRITE(*,*) 
