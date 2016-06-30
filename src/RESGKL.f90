@@ -62,7 +62,7 @@ SUBROUTINE RESGKL(J,MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,
   END DO
   P=Q
   Q_arr=0
-  Q_arr(k)=1;
+  Q_arr(k)=1.0D+0
   IF (SELEK == 1) THEN
      ! with lapack 1.0 QR
      !  WRITE(*,*) "GIVENS回転(DGEBRDG_LP1)+QR法(DBDSQRU)+両側(DGEMM)"
