@@ -67,7 +67,7 @@ SUBROUTINE RESGKL(J,MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,
      ! with lapack 1.0 QR
      !  WRITE(*,*) "GIVENS回転(DGEBRDG_LP1)+QR法(DBDSQRU)+両側(DGEMM)"
      CALL DGEBRDG_4_BISIDE(L+1,BK,K,Q,P)
-
+     !上下左右逆転実装スべし
      DO I = 1,K
         BD(I)=BK(I,I)
      END DO
@@ -82,7 +82,7 @@ SUBROUTINE RESGKL(J,MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,
      DO I = 1,L
         HIGE(I) = beta * Q(k,k+1-I)
      END DO
-     DO I = 1, L
+     DO I = 1, L !ここはswapの実装にしないとまずい
         Q(1:K,I) = Q(1:K,K+1-I)
         P(I,1:K) = P(K+1-I,1:K)
      END DO
