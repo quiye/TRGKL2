@@ -11,7 +11,7 @@ SUBROUTINE RESGKL(J,MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,
   PARAMETER(ONE=1.0D+0,ZERO=0.0D+0,MINUSONE=-1.0D+0)
   DOUBLE PRECISION NRM,CDUMMY(1,1),beta
   DOUBLE PRECISION BK(K,K),CPBK(K,K),VK(N,K),UK(M,K),VPLUS(N),VMTEMP(M),BD(K),BE(K)
-  DOUBLE PRECISION VNTEMP(N),VL(K,K)
+  DOUBLE PRECISION VNTEMP(N),VL(K,K),TMPKK(K,K)
   DOUBLE PRECISION DNRM2,VM(N,K),UM(M,K),HIGE(L),DLAMCH,WORK2(K*8)
   DOUBLE PRECISION Q(K,K),P(K,K),TAU(L),Q_arr(K)
   DOUBLE PRECISION,ALLOCATABLE :: WORK(:)
@@ -124,49 +124,6 @@ SUBROUTINE RESGKL(J,MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,
      DO I = 1,L
         HIGE(I) = beta * Q_arr(i)
      END DO
-
-  
-!  ELSE IF(SELEK==1) THEN
-!     !  WRITE(*,*) "GIVENS回転(DGEBRDG_LP1)+QR法(DBDSQR)+両側(DGEMM)"
-!     CALL DGEBRDG_4_BISIDE(L+1,BK,K,Q,P)
-!
-!     DO I = 1,K
-!        BD(I)=BK(I,I)
-!     END DO
-!     DO I = 1,K-1
-!        BE(I)=BK(I,I+1)
-!     END DO
-!     CALL DBDSQR( 'U',K,K,K,0,BD,BE,P,K,Q,K,CDUMMY,K,WORK,IINFO )
-!     DO I =1 ,L
-!        BK(I,I) = BD(I)
-!     END DO
-!     CALL DGEMM('N','N',M,L,K,ONE,UK,M,Q,K,ZERO,UM,M)
-!     CALL DGEMM('N','T',N,L,K,ONE,VK,N,P,K,ZERO,VM,N)
-!  ELSE IF(SELEK==2) THEN
-!     !  WRITE(*,*) "GIVENS回転(DGEBRDG_LP1)+QR法(DBDSQR)+片側(DORMQR)"
-!
-!     CALL DGEBRDG_LP1(L+1,BK,K,Q,P)
-!
-!     DO I = 1,K
-!        BD(I)=BK(I,I)
-!     END DO
-!
-!     DO I = 1,K-1
-!        BE(I)=BK(I,I+1)
-!     END DO
-!
-!     CALL DBDSQR('U',K,K,0,0,BD,BE,P,K,Q,K,CDUMMY,K,WORK,IINFO )
-!     VL=TRANSPOSE(P)
-!     CALL DGEQRF(K,L,VL,K,TAU,WORK,LWORK,IINFO)
-!     CALL DORMQR('R','N',K,K,L,VL,K,TAU,CPBK,K,WORK,LWORK,IINFO )
-!     CALL DORMQR('R','N',N,K,L,VL,K,TAU,VK,N,WORK,LWORK,IINFO )
-!     VM(:,1:L)=VK(:,1:L)
-!     CALL DGEQRF(K,L,CPBK,K,TAU,WORK,LWORK,IINFO)
-!     CALL DORMQR('R','N',M,K,L,CPBK,K,TAU,UK,M,WORK,LWORK,IINFO )
-!     UM(:,1:L)=UK(:,1:L)
-!     DO I = 1,L
-!        BK(I,I:L)=CPBK(I,I:L)
-!     END DO
   ELSE IF ( SELEK==6) THEN
      ! そもそも、初回はDGEBRDする必要がない
      ! 下のELSEから始まるものと比較して、ロバスト性が高くなってる。
@@ -278,7 +235,49 @@ SUBROUTINE RESGKL(J,MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,
      END DO
      CALL DGEMM('N','T',M,L,K,ONE,UK,M,Q,K,ZERO,UM,M)
      CALL DGEMM('N','N',N,L,K,ONE,VK,N,P,K,ZERO,VM,N)
-  END IF
+  ELSE IF(SELEK==7) THEN
+     !WRITE(*,*) "GIVENS回転(DGEBRDG_LP1)+OQDS1法(DOQDS1)+両側(DGEMM)"
+
+     CALL DGEBRDG_4_BISIDE(L+1,BK,K,Q,P)
+     TMPKK=0
+     DO I = 1, K
+        TMPKK(I,K-I+1) = 1.0
+     END DO
+     CALL DGEMM('N','N',K,K,K,ONE,BK,K,TMPKK,K,ZERO,KK,K)
+     CALL DGEMM('N','N',K,K,K,ONE,TMPKK,K,KK,K,ZERO,BK,K)
+     CALL DGEMM('N','N',K,K,K,ONE,Q,K,TMPKK,K,ZERO,KK,K)
+     Q=KK
+     CALL DGEMM('N','N',K,K,K,ONE,TMPKK,K,P,K,ZERO,KK,K)
+     P=KK
+     !P=TRANSPOSE(P)
+     !Q=TRANSPOSE(Q)
+     DO I = 1,K
+        BD(I)=BK(I,I)
+     END DO
+     DO I = 1,K-1
+        BE(I)=BK(I,I+1)
+     END DO
+     CALL DOQDS1('U',K,BD,BE,Q,K,P,K,WORK,WORK2,INFO)
+     P=TRANSPOSE(P)
+     Q=TRANSPOSE(Q)
+     BK=0
+     DO I =1 ,L
+        BK(I,I) = BD(k-I+1)
+     END DO
+     DO I = 1,L
+        HIGE(I) = beta * Q(K-I+1,K)
+     END DO
+     DO I = 1,L
+        Q_arr = Q(K+1-I,1:K)
+        Q(K+1-I,1:K) = Q(I,1:K)
+        Q(I,1:K) = Q_arr
+        Q_arr = P(1:K,K+1-I)
+        P(1:K,K+1-I) = P(1:K,I)
+        P(1:K,I) = Q_arr
+     END DO
+     CALL DGEMM('N','T',M,L,K,ONE,UK,M,Q,K,ZERO,UM,M)
+     CALL DGEMM('N','N',N,L,K,ONE,VK,N,P,K,ZERO,VM,N)
+   END IF
   !IF(MODE=='s') THEN
      !CALL MKL_DCSRMV( 'N', M, N, ONE, MATDESCRA, A, INDXA, &
           !PNTRBA,PNTREA, VPLUS(1), ZERO, VMTEMP(1))
