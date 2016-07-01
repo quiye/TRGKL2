@@ -234,25 +234,25 @@ SUBROUTINE RESGKL(J,MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,
      !WRITE(*,*) "GIVENS回転(DGEBRDG_LP1)+OQDS1法(DOQDS1)+両側(DGEMM)"
 
      CALL DGEBRDG_4_BISIDE(L+1,BK,K,Q,P)
-     P=TRANSPOSE(P)
-     Q=TRANSPOSE(Q)
+     !P=TRANSPOSE(P)
+     !Q=TRANSPOSE(Q)
      DO I = 1,K
         BD(I)=BK(I,I)
      END DO
      DO I = 1,K-1
         BE(I)=BK(I,I+1)
      END DO
-     CALL DOQDS1('L',K,BD,BE,P,K,Q,K,WORK,WORK2,INFO)
+     CALL DOQDS1('U',K,BD,BE,Q,K,P,K,WORK,WORK2,INFO)
      BK=0
      DO I =1 ,L
         BK(I,I) = BD(I)
      END DO
      DO I = 1,L
-        HIGE(I) = beta * Q(I,K)
+        HIGE(I) = beta * Q(K,I)
      END DO
      
-     CALL DGEMM('N','T',M,L,K,ONE,UK,M,Q,K,ZERO,UM,M)
-     CALL DGEMM('N','N',N,L,K,ONE,VK,N,P,K,ZERO,VM,N)
+     CALL DGEMM('N','N',M,L,K,ONE,UK,M,Q,K,ZERO,UM,M)
+     CALL DGEMM('N','T',N,L,K,ONE,VK,N,P,K,ZERO,VM,N)
   ELSE IF (SELEK==7) THEN
      !  WRITE(*,*) "GIVENSrotation+ヤコビ法(DGESVJ)+両側(DGEMM)"
      ! 作成中
