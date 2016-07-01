@@ -13,7 +13,7 @@ SUBROUTINE RESGKL(J,MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,
   DOUBLE PRECISION BK(K,K),CPBK(K,K),VK(N,K),UK(M,K),VPLUS(N),VMTEMP(M),BD(K),BE(K)
   DOUBLE PRECISION VNTEMP(N),VL(K,K)
   DOUBLE PRECISION DNRM2,VM(N,K),UM(M,K),HIGE(L),DLAMCH,WORK2(K*8)
-  DOUBLE PRECISION Q(K,K),P(K,K),TAU(L),Q_mat(K,K)
+  DOUBLE PRECISION Q(K,K),P(K,K),TAU(L),Q_arr(K)
   DOUBLE PRECISION,ALLOCATABLE :: WORK(:)
   EXTERNAL CGS2,DLAMCH,DOQDS2,DGEBRD_2
 
@@ -62,7 +62,8 @@ SUBROUTINE RESGKL(J,MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,
      Q(I,I)=1
   END DO
   P=Q
-  Q_mat=Q
+  Q_arr=0
+  Q_arr(k)=1.0D+0
    IF (SELEK == 1) THEN
      ! with lapack 1.0 QR
      !  WRITE(*,*) "GIVENS回転(DGEBRDG_LP1)+QR法(DBDSQRU)+両側(DGEMM)"
@@ -82,9 +83,13 @@ SUBROUTINE RESGKL(J,MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,
      DO I = 1,L
         HIGE(I) = beta * Q(k,k+1-I)
      END DO
-     DO I = 1, L !ここはswapの実装にしないとまずい
-        Q(1:K,I) = Q(1:K,K+1-I)
-        P(I,1:K) = P(K+1-I,1:K)
+     DO I = 1, L
+        Q_arr = Q(1:K,K+1-I)
+        Q(1:K,K+1-I) = Q(1:K,I)
+        Q(1:K,I) = Q_arr
+        Q_arr = P(K+1-I,1:K)
+        P(K+1-I,1:K)=P(I,1:K)
+        P(I,1:K) = Q_arr
      END DO
      CALL DGEMM('N','N',M,L,K,ONE,UK,M,Q,K,ZERO,UM,M)
      CALL DGEMM('N','T',N,L,K,ONE,VK,N,P,K,ZERO,VM,N)
@@ -115,9 +120,9 @@ SUBROUTINE RESGKL(J,MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,
      DO I = 1,L
         BK(I,I:L)=CPBK(I,I:L)
      END DO
-     CALL DORMQR('R','N',K,K,L,CPBK,K,TAU,Q_mat,K,WORK,LWORK,IINFO )
+     CALL DORMQR('R','N',1,K,L,CPBK,K,TAU,Q_arr,1,WORK,LWORK,IINFO )
      DO I = 1,L
-        HIGE(I) = beta * Q_mat(k,i)
+        HIGE(I) = beta * Q_arr(i)
      END DO
 
   
@@ -180,9 +185,9 @@ SUBROUTINE RESGKL(J,MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,
      DO I = 1,L
         BK(I,I:L)=CPBK(I,I:L)
      END DO
-     CALL DORMQR('R','N',K,K,L,CPBK,K,TAU,Q_mat,K,WORK,LWORK,IINFO )
+     CALL DORMQR('R','N',1,K,L,CPBK,K,TAU,Q_arr,1,WORK,LWORK,IINFO )
      DO I = 1,L
-        HIGE(I) = beta * Q_mat(k,i)
+        HIGE(I) = beta * Q_arr(i)
      END DO
 
   ELSE IF (SELEK==5) THEN
@@ -198,8 +203,12 @@ SUBROUTINE RESGKL(J,MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,
      END DO
 
      DO I = 1,L
-         VL(1:K,I) = VL(1:K,K+1-I)
-         BK(1:K,I) = BK(1:K,K+1-I)
+         Q_arr = VL(1:K,K+1-I)
+         VL(1:K,K+1-I) = VL(1:K,I)
+         VL(1:K,I) = Q_arr
+         Q_arr = BK(1:K,K+1-I)
+         BK(1:K,K+1-I) = BK(1:K,I)
+         BK(1:K,I) = Q_arr
      END DO
 
      CALL DGEMM('N','N',N,L,K,ONE,VK,N,VL,K,ZERO,VM,N)
@@ -235,9 +244,9 @@ SUBROUTINE RESGKL(J,MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,
      DO I = 1,L
         BK(I,I:L)=CPBK(I,I:L)
      END DO
-     CALL DORMQR('R','N',K,K,L,CPBK,K,TAU,Q_mat,K,WORK,LWORK,IINFO )
+     CALL DORMQR('R','N',1,K,L,CPBK,K,TAU,Q_arr,1,WORK,LWORK,IINFO )
      DO I = 1,L
-        HIGE(I) = beta * Q_mat(k,i)
+        HIGE(I) = beta * Q_arr(i)
      END DO
   ELSE IF(SELEK==3) THEN
      !WRITE(*,*) "GIVENS回転(DGEBRDG_LP1)+OQDS1法(DOQDS1)+両側(DGEMM)"
@@ -260,8 +269,12 @@ SUBROUTINE RESGKL(J,MODE,MATDESCRA,INDXA,PNTRBA,PNTREA,A,M,N,K,L,BK,VK,UK,VPLUS,
         HIGE(I) = beta * Q(K-I+1,K)
      END DO
      DO I = 1,L
-        Q(I,1:K) = Q(K+1-I,1:K)
-        P(1:K,I) = P(1:K,K+1-I)
+        Q_arr = Q(K+1-I,1:K)
+        Q(K+1-I,1:K) = Q(I,1:K)
+        Q(I,1:K) = Q_arr
+        Q_arr = P(1:K,K+1-I)
+        P(1:K,K+1-I) = P(1:K,I)
+        P(1:K,I) = Q_arr
      END DO
      CALL DGEMM('N','T',M,L,K,ONE,UK,M,Q,K,ZERO,UM,M)
      CALL DGEMM('N','N',N,L,K,ONE,VK,N,P,K,ZERO,VM,N)
