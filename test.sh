@@ -1,0 +1,11 @@
+./fileinput_gkl 5 s 20 < PROB3 > LOG5
+./fileinput_gkl 10 s 20 < PROB3 > LOG10
+./fileinput_gkl 20 s 20 < PROB3 > LOG20
+./fileinput_gkl 30 s 20 < PROB3 > LOG30
+./fileinput_gkl 40 s 20 < PROB3 > LOG40
+./fileinput_gkl 50 s 20 < PROB3 > LOG50
+./fileinput_gkl 60 s 20 < PROB3 > LOG60
+./fileinput_gkl 70 s 20 < PROB3 > LOG70
+./fileinput_gkl 80 s 20 < PROB3 > LOG80
+./fileinput_gkl 90 s 20 < PROB3 > LOG90
+./fileinput_gkl 100 s 20 < PROB3 > LOG100
