@@ -4,6 +4,7 @@
 *.txt
 *.swp
 *.csv
+*~
 fileinput_gkl
 sparse_nonsymm
 dense_nonsymm
