@@ -19,7 +19,9 @@ SUBROUTINE RESGKL_MAIN(MODE,ACCURACY,M,N,L,K,IAP,JA,A,WORK,LWORK)
   WRITE (*,*) M,N,K,L
 
   CONST = TEN**(ZERO - accuracy)
-
+  if(min(M,N)<K) then
+     print *,"! ERR","L must be smaller than",min(M,N)/2
+  end if
   DO W = 1,1
      CALL DLARNV(1,ISEED,N,VPLUS_ORIG)
      VPLUS_ORIG = VPLUS_ORIG / DNRM2(N,VPLUS_ORIG,1)
