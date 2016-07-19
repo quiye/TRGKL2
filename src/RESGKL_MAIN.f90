@@ -20,7 +20,7 @@ SUBROUTINE RESGKL_MAIN(MODE,ACCURACY,M,N,L,K,IAP,JA,A,WORK,LWORK)
 
   CONST = TEN**(ZERO - accuracy)
   if(min(M,N)<K) then
-     print *,"! ERR","L must be smaller than",min(M,N)/2
+     print *,"! ERR L must be smaller than",min(M,N)/2
   end if
   DO W = 1,1
      CALL DLARNV(1,ISEED,N,VPLUS_ORIG)
@@ -34,7 +34,7 @@ SUBROUTINE RESGKL_MAIN(MODE,ACCURACY,M,N,L,K,IAP,JA,A,WORK,LWORK)
         VK = ZERO
         MIN_ERR = MINUSONE
         COU = 0
-        ITR = 1
+        ITR = 0
         I = 0
         VPLUS = VPLUS_ORIG
         DO WHILE (COU < 100)
