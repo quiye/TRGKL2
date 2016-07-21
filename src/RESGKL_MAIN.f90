@@ -55,7 +55,6 @@ SUBROUTINE RESGKL_MAIN(MODE,ACCURACY,M,N,L,K,IAP,JA,A,WORK,LWORK)
         END DO
 
         TE0 = ERR(mode,IAP,JA,A,M,N,K,L,BK,VK,UK,WORK)
-        write(*,*)
         WRITE(*,*) W,"TIME", SELEK,ITR,(TMPT-STARTT),TMP_ERR,"AVE",TE0
         
         DO I = 1,3

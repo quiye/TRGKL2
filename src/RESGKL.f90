@@ -37,6 +37,7 @@ SUBROUTINE RESGKL(J,MODE,IAP,JA,A,M,N,K,L,BK,VK,UK,VPLUS,INFO,SELEK,WORK,LWORK)
      ELSE
         BETA = DNRM2(N,VPLUS,1)
         VPLUS(1:N) = VPLUS(1:N) / BETA
+        !call dscal(N,1/BETA,VPLUS,1)
      END IF
      J = J+1
   END DO
