@@ -13,7 +13,6 @@ SUBROUTINE RESGKL(J,MODE,IAP,JA,A,M,N,K,L,BK,VK,UK,VPLUS,INFO,SELEK,WORK,LWORK)
   DOUBLE PRECISION VM(N,L),UM(M,L),WORK2(K*8)
   DOUBLE PRECISION Q(K,K),P(K,K)
   DOUBLE PRECISION DNRM2,DLAMCH
-!  EXTERNAL CGS2,DLAMCH
 
   VK(1:N,J+1) = VPLUS(1:N)
   DO WHILE(J < K)
@@ -22,7 +21,7 @@ SUBROUTINE RESGKL(J,MODE,IAP,JA,A,M,N,K,L,BK,VK,UK,VPLUS,INFO,SELEK,WORK,LWORK)
      ELSE IF(MODE=='d') THEN
         CALL DGEMV('N',M,N,ONE,A,M,VK(1:N,J+1),1,ZERO,UM(1:M,1),1)
      END IF
-     CALL CGS2(UM(1:M,1),UK,M,K,J,WORK)
+     CALL CGS2(UM(1:M,1),UK,M,J,WORK)
      BK(J+1,J+1) = DNRM2(M,UM(1:M,1),1)
      UK(1:M,J+1) = UM(1:M,1) / BK(J+1,J+1)
      IF(MODE=='s') THEN
@@ -30,7 +29,7 @@ SUBROUTINE RESGKL(J,MODE,IAP,JA,A,M,N,K,L,BK,VK,UK,VPLUS,INFO,SELEK,WORK,LWORK)
      ELSE IF(MODE=='d') THEN
         CALL DGEMV('T',M,N,ONE,A,M,UK(1:M,J+1),1,ZERO,VPLUS,1)
      END IF
-     CALL CGS2(VPLUS,VK,N,K,J+1,WORK)
+     CALL CGS2(VPLUS,VK,N,J+1,WORK)
      IF(J < K - 1) THEN
         BK(J+1,J+2) = DNRM2(N,VPLUS,1)
         VK(1:N,J+2) = VPLUS(1:N) / BK(J+1,J+2)
@@ -283,4 +282,32 @@ subroutine atv (M, N, IAP, JA, A, Q, AQ)
   return
 end subroutine atv
 
-
+!SUBROUTINE CGS3(vntemp,V,n,j,WORK)
+!  IMPLICIT NONE
+!  include 'omp_lib.h'
+!  INTEGER n,j,i
+!  DOUBLE PRECISION  ONE, ZERO, MINUSONE
+!  PARAMETER ( ONE = 1.0D+0, ZERO=0.0D+0,MINUSONE = -1.0D+0 )
+!  DOUBLE PRECISION V(n,j),vntemp(n),tmp,WORK(n)
+!  do i=1,N
+!     WORK(i)=zero
+!  enddo
+!  !$OMP PARALLEL DO PRIVATE(tmp) REDUCTION(+:WORK)
+!  do i = 1,j
+!     CALL DDOT(n,V(1,i),1,vntemp,1,tmp)
+!     WORK =WORK+ tmp * V(1:n,i)
+!  end do
+!  !$OMP END PARALLEL DO
+!  vntemp = vntemp - WORK
+!  do i=1,N
+!     WORK(i)=zero
+!  enddo
+!  !$OMP PARALLEL DO PRIVATE(tmp) REDUCTION(+:WORK)
+!  do i = 1,j
+!     CALL DDOT(n,V(1,i),1,vntemp,1,tmp)
+!     WORK =WORK+ tmp * V(1:n,i)
+!  end do
+!  !$OMP END PARALLEL DO
+!  vntemp = vntemp - WORK
+!
+!END SUBROUTINE CGS3
