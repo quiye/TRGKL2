@@ -11,3 +11,5 @@ dense_nonsymm
 power
 bidiag
 *pycache*
+dammy*
+data*

@@ -10,7 +10,7 @@
 
 int main(int argc, char *argv[]){
 
-  int i, ii, j, m, n, w, L ,K, accuracy, lwork;
+  int s,u,i,each, ii, j, m, n,tmp, w, L ,K, accuracy, lwork;
   double alpha;
   char mode;
   int *IAP,*JA;
@@ -30,6 +30,9 @@ int main(int argc, char *argv[]){
 
   printf("each row has %d elements.\n",w/m);
 
+  s=7827187;
+  srand(s);
+ 
   IAP=(int *)malloc(sizeof(int)*(m+1));
   JA=(int *)malloc(sizeof(int)*w);
   A=(double *)malloc(sizeof(double)*w);
@@ -45,27 +48,32 @@ int main(int argc, char *argv[]){
     printf("Out of memory.\n");
     return 0;
   }
-  
+
+  each = w / m;
   if(mode=='s'){
     ii=0;
-    w=0;
     IAP[0]=1;
-    while(scanf("%d %d %lf",&i,&j,&alpha) !=EOF){
+    for(tmp=0;tmp<w;tmp++){
+    //while(scanf("%d %d %lf",&i,&j,&alpha) !=EOF){
+      i = tmp / each;
+      j = rand() % n;
+      alpha = rand()/(double)RAND_MAX;
+      //printf("%d %d %30.20f\n",i,j,alpha);
       if(i!=ii){
-	IAP[ii+1]=w+1;
-	ii++;
+        IAP[ii+1]=tmp+1;
+        ii++;
       }
-      JA[w]=j+1;
-      A[w]=alpha;
-      w++;
+      JA[tmp]=j+1;
+      A[tmp]=alpha;
+      //tmp++;
     }
-    IAP[ii+1]=w+1;
+    IAP[ii+1]=tmp+1;
   }
   else if(mode=='d'){
-    w=0;
+    tmp=0;
     while(scanf("%lf",&alpha) !=EOF){
-      A[w]=alpha;
-      w++;
+      A[tmp]=alpha;
+      tmp++;
     }
   }
 
@@ -73,3 +81,4 @@ int main(int argc, char *argv[]){
 
   return 0;
 }
+
