@@ -1,5 +1,4 @@
-      SUBROUTINE DOQDS1(UPLO,N0,A,B,SU,LDSU,SVT,LDSVT,WORK,WORK2,
-     $     INFO)
+      SUBROUTINE DOQDS1(UPLO,N0,A,B,SU,LDSU,SVT,LDSVT,WORK,WORK2,INFO)
       
       IMPLICIT NONE
       
@@ -332,20 +331,12 @@
             ENDDO
             WORK2(INDRV5+M) = (WORK2(INDRV5+M)/TMP3)/A(M)
             TMP1 = WORK2(INDRV5+M)
-            DO J = M+1,N-1
+            DO J = M+1,N
                WORK2(INDRV2+J) = B(J-1)/A(J)
                WORK2(INDRV5+J) = (WORK2(INDRV5+J)/TMP3)/A(J)+
      $              WORK2(INDRV2+J)*WORK2(INDRV5+J-1)
                TMP1 = MAX(TMP1,WORK2(INDRV5+J))
             ENDDO
-            TAU2 = ZERO
-            IF (TMP3 .GT. ZERO .AND. TMP1 .GT. ZERO) THEN
-               TAU2 = MAX(TAU2,ONE/SQRT(TMP1)/SQRT(TMP3))
-            ENDIF
-            WORK2(INDRV2+N) = B(N-1)/A(N)
-            WORK2(INDRV5+N) = (WORK2(INDRV5+N)/TMP3)/A(N)+
-     $           WORK2(INDRV2+N)*WORK2(INDRV5+N-1)
-            TMP1 = MAX(TMP1,WORK2(INDRV5+N))
             TAU = ZERO
             IF (TMP3 .GT. ZERO .AND. TMP1 .GT. ZERO) THEN
                TAU = MAX(TAU,ONE/SQRT(TMP1)/SQRT(TMP3))
@@ -362,25 +353,14 @@
             ENDDO
             TMP2 = (WORK2(INDRV6+M)/TMP3)/A(M)
             TMP1 = TMP2/WORK2(INDRV5+M)
-            DO J = M+1,N-1
+            DO J = M+1,N
                TMP2 = (WORK2(INDRV6+J)/TMP3)/A(J)+WORK2(INDRV2+J)*TMP2
                TMP1 = MAX(TMP1,TMP2/WORK2(INDRV5+J))
             ENDDO
             IF (TMP3 .GT. ZERO .AND. TMP1 .GT. ZERO) THEN
-               TAU2 = MAX(TAU2,ONE/SQRT(TMP1)/SQRT(TMP3))
-            ENDIF
-            TMP2 = (WORK2(INDRV6+N)/TMP3)/A(N)+WORK2(INDRV2+N)*TMP2
-            TMP1 = MAX(TMP1,TMP2/WORK2(INDRV5+N))
-            IF (TMP3 .GT. ZERO .AND. TMP1 .GT. ZERO) THEN
                TAU = MAX(TAU,ONE/SQRT(TMP1)/SQRT(TMP3))
             ENDIF
 
-            TMP1 = SQRT(TAU2-A(N))*SQRT(TAU2+A(N))
-            TMP1 = A(N)*SQRT(ONE-B(N-1)/TMP1)*SQRT(ONE+B(N-1)/TMP1)
-            IF (TMP1 .EQ. TMP1) THEN
-               TAU = MAX(TAU,TMP1)
-            ENDIF
-            
             IF (TAU .GT. ZERO) GO TO 125
        
             TAU=A(N)-HALF*B(N-1)
@@ -443,6 +423,7 @@
                WORK2(INDRV6+N-1) = S1*A(N)
                
                TMP4 = DFMA0(C1,A(N),-TAU)
+               IF(TMP4 .LT. ZERO .AND. TAU+TMP4 .EQ. TAU) TMP4=ZERO
                IF(TMP4 .LT. ZERO) THEN
                   DO K=0,MAXREC
                      TAU2 = MAX(ONE-DBLE(K)*EPS,ZERO)*(C1*A(N))
@@ -504,6 +485,7 @@
                WORK2(INDRV6+N-1) = S1*A(N)
                
                TMP4 = DFMA0(C1,A(N),-TAU)
+               IF(TMP4 .LT. ZERO .AND. TAU+TMP4 .EQ. TAU) TMP4=ZERO
                IF(TMP4 .LT. ZERO) THEN
                   DO K=0,MAXREC
                      TAU2 = MAX(ONE-DBLE(K)*EPS,ZERO)*(C1*A(N))
@@ -576,23 +558,13 @@
 *     
  350        TMP1 = A(M)
             DO J = M, N-1
-               CALL DLARTG2(TMP1,B(J),C1,S1,A(J))
+               CALL DLARTG2(TMP1,B(J),C1,S1,WORK2(INDRV5+J))
                WORK2(INDRV1+J) = C1
                WORK2(INDRV2+J) = S1
-               B(J) = S1*A(J+1)
+               WORK2(INDRV6+J) = S1*A(J+1)
                TMP1 = C1*A(J+1)
             ENDDO
-            A(N) = TMP1
-*     
-            TMP1 = A(M)
-            DO J = M, N-1
-               CALL DLARTG2(TMP1,B(J),C1,S1,A(J))
-               WORK2(INDRV3+J) = C1
-               WORK2(INDRV4+J) = S1
-               B(J) = S1*A(J+1)
-               TMP1 = C1*A(J+1)
-            ENDDO
-            A(N) = TMP1
+            WORK2(INDRV5+N) = TMP1
 *     
             DO J = M, N-1
                IF( ( WORK2(INDRV1+J).NE.ONE ) .OR. 
@@ -601,6 +573,123 @@
      $                 WORK2(INDRV2+J))
                ENDIF
             ENDDO
+*
+            GO TO 395
+*     
+ 390        IF (N-M+1 .EQ. 1) THEN
+            
+               CALL DLARTG2(WORK2(INDRV5+N),SIGMA,C1,S1,TMP1)
+               
+               IF( ( C1.NE.ONE ) .OR. ( S1.NE.ZERO ) ) THEN
+                  CALL DROT(N0,SU(1,N),1,WORK(1,N),1,C1,S1)
+               ENDIF
+               
+               CALL DLARTG7(SIGMA,DESIG,WORK2(INDRV5+N),A(N),DESIG0)
+               
+               GO TO 700
+               
+            ENDIF
+            
+            IF (N-M+1 .EQ. 2) THEN
+               
+               CALL DLASV2(WORK2(INDRV5+N-1), WORK2(INDRV6+N-1),
+     $              WORK2(INDRV5+N), WORK2(INDRV5+N), WORK2(INDRV5+N-1),
+     $              S1, C1, S2, C2)
+               
+               IF( ( C1.NE.ONE ) .OR. ( S1.NE.ZERO ) ) THEN
+                  CALL DROT(N0,SVT(N-1,1),LDSVT,SVT(N,1),LDSVT,C1,S1)
+               ENDIF
+               
+               IF( ( C2.NE.ONE ) .OR. ( S2.NE.ZERO ) ) THEN
+                  CALL DROT(N0,SU(1,N-1),1,SU(1,N),1,C2,S2)
+               ENDIF
+               
+               IF( ( C1.NE.ONE ) .OR. ( S1.NE.ZERO ) ) THEN
+                  CALL DROT(N0,WORK(1,N-1),1,WORK(1,N),1,C1,S1)
+               ENDIF
+               
+               CALL DLARTG2(WORK2(INDRV5+N-1),SIGMA,C1,S1,TMP1)
+               
+               IF( ( C1.NE.ONE ) .OR. ( S1.NE.ZERO ) ) THEN
+                  CALL DROT(N0,SU(1,N-1),1,WORK(1,N-1),1,C1,S1)
+               ENDIF
+               
+               CALL DLARTG7(SIGMA,DESIG,WORK2(INDRV5+N-1),A(N-1),DESIG0)
+               
+               CALL DLARTG2(WORK2(INDRV5+N),SIGMA,C1,S1,TMP1)
+               
+               IF( ( C1.NE.ONE ) .OR. ( S1.NE.ZERO ) ) THEN
+                  CALL DROT(N0,SU(1,N),1,WORK(1,N),1,C1,S1)
+               ENDIF
+               
+               CALL DLARTG7(SIGMA,DESIG,WORK2(INDRV5+N),A(N),DESIG0)
+               
+               GO TO 700
+            ENDIF
+            
+ 395        IF (WORK2(INDRV6+N-1) .LE. SIGMA2) THEN
+               
+               CALL DLARTG2(WORK2(INDRV5+N),SIGMA,C1,S1,TMP1)
+               
+               IF( ( C1.NE.ONE ) .OR. ( S1.NE.ZERO ) ) THEN
+                  CALL DROT(N0,SU(1,N),1,WORK(1,N),1,C1,S1)
+               ENDIF
+               
+               CALL DLARTG7(SIGMA,DESIG,WORK2(INDRV5+N),A(N),DESIG0)
+               
+               N = N - 1
+               GO TO 390
+               
+            ENDIF
+*     
+            IF (WORK2(INDRV6+N-2) .LE. SIGMA2) THEN
+               
+               CALL DLASV2(WORK2(INDRV5+N-1), WORK2(INDRV6+N-1),
+     $              WORK2(INDRV5+N), WORK2(INDRV5+N), WORK2(INDRV5+N-1),
+     $              S1, C1, S2, C2)
+               
+               IF( ( C1.NE.ONE ) .OR. ( S1.NE.ZERO ) ) THEN
+                  CALL DROT(N0,SVT(N-1,1),LDSVT,SVT(N,1),LDSVT,C1,S1)
+               ENDIF
+               
+               IF( ( C2.NE.ONE ) .OR. ( S2.NE.ZERO ) ) THEN
+                  CALL DROT(N0,SU(1,N-1),1,SU(1,N),1,C2,S2)
+               ENDIF
+               
+               IF( ( C1.NE.ONE ) .OR. ( S1.NE.ZERO ) ) THEN
+                  CALL DROT(N0,WORK(1,N-1),1,WORK(1,N),1,C1,S1)
+               ENDIF
+               
+               CALL DLARTG2(WORK2(INDRV5+N-1),SIGMA,C1,S1,TMP1)
+               
+               IF( ( C1.NE.ONE ) .OR. ( S1.NE.ZERO ) ) THEN
+                  CALL DROT(N0,SU(1,N-1),1,WORK(1,N-1),1,C1,S1)
+               ENDIF
+               
+               CALL DLARTG7(SIGMA,DESIG,WORK2(INDRV5+N-1),A(N-1),DESIG0)
+               
+               CALL DLARTG2(WORK2(INDRV5+N),SIGMA,C1,S1,TMP1)
+               
+               IF( ( C1.NE.ONE ) .OR. ( S1.NE.ZERO ) ) THEN
+                  CALL DROT(N0,SU(1,N),1,WORK(1,N),1,C1,S1)
+               ENDIF
+               
+               CALL DLARTG7(SIGMA,DESIG,WORK2(INDRV5+N),A(N),DESIG0)
+               
+               N = N - 2
+               GO TO 390
+               
+            ENDIF
+*
+            TMP1 = WORK2(INDRV5+M)
+            DO J = M, N-1
+               CALL DLARTG2(TMP1,WORK2(INDRV6+J),C1,S1,A(J))
+               WORK2(INDRV3+J) = C1
+               WORK2(INDRV4+J) = S1
+               B(J) = S1*WORK2(INDRV5+J+1)
+               TMP1 = C1*WORK2(INDRV5+J+1)
+            ENDDO
+            A(N) = TMP1
 *     
             DO J = M, N-1
                IF( ( WORK2(INDRV3+J).NE.ONE ) .OR. 
@@ -715,18 +804,11 @@
             ENDDO
             A(N) = (A(N)/TMP3)/WORK2(INDRV5+N)
             TMP1 = A(N)
-            DO J = N-1,M+1,-1
+            DO J = N-1,M,-1
                WORK2(INDRV2+J) = WORK2(INDRV6+J)/WORK2(INDRV5+J)
                A(J) = (A(J)/TMP3)/WORK2(INDRV5+J)+WORK2(INDRV2+J)*A(J+1)
                TMP1 = MAX(TMP1,A(J))
             ENDDO
-            TAU2 = ZERO
-            IF (TMP3 .GT. ZERO .AND. TMP1 .GT. ZERO) THEN
-               TAU2 = MAX(TAU2,ONE/SQRT(TMP1)/SQRT(TMP3))
-            ENDIF
-            WORK2(INDRV2+M) = WORK2(INDRV6+M)/WORK2(INDRV5+M)
-            A(M) = (A(M)/TMP3)/WORK2(INDRV5+M)+WORK2(INDRV2+M)*A(M+1)
-            TMP1 = MAX(TMP1,A(M))
             TAU = ZERO
             IF (TMP3 .GT. ZERO .AND. TMP1 .GT. ZERO) THEN
                TAU = MAX(TAU,ONE/SQRT(TMP1)/SQRT(TMP3))
@@ -742,36 +824,25 @@
             ENDDO
             TMP2 = (B(N)/TMP3)/WORK2(INDRV5+N)
             TMP1 = TMP2/A(N)
-            DO J = N-1,M+1,-1
+            DO J = N-1,M,-1
                TMP2 = (B(J)/TMP3)/WORK2(INDRV5+J)+WORK2(INDRV2+J)*TMP2
                TMP1 = MAX(TMP1,TMP2/A(J))
             ENDDO
             IF (TMP3 .GT. ZERO .AND. TMP1 .GT. ZERO) THEN
-               TAU2 = MAX(TAU2,ONE/SQRT(TMP1)/SQRT(TMP3))
-            ENDIF
-            TMP2 = (B(M)/TMP3)/WORK2(INDRV5+M)+WORK2(INDRV2+M)*TMP2
-            TMP1 = MAX(TMP1,TMP2/A(M))
-            IF (TMP3 .GT. ZERO .AND. TMP1 .GT. ZERO) THEN
                TAU = MAX(TAU,ONE/SQRT(TMP1)/SQRT(TMP3))
-            ENDIF
-
-            TMP1 = SQRT(TAU2-WORK2(INDRV5+M))*SQRT(TAU2+WORK2(INDRV5+M))
-            TMP1 = WORK2(INDRV5+M)*SQRT(ONE-WORK2(INDRV6+M)/TMP1)*
-     $           SQRT(ONE+WORK2(INDRV6+M)/TMP1)
-            IF (TMP1 .EQ. TMP1) THEN
-               TAU = MAX(TAU,TMP1)
             ENDIF
 
             IF (TAU .GT. ZERO) GO TO 1125
             
-            TAU=A(M)-HALF*B(M)
+            TAU=WORK2(INDRV5+M)-HALF*WORK2(INDRV6+M)
             IF (TAU .LE. ZERO) GO TO 1350
             DO J=M+1,N-1
-               TMP2=A(J)-HALF*(B(J)+B(J-1))
+               TMP2=WORK2(INDRV5+J)
+     $              -HALF*(WORK2(INDRV6+J)+WORK2(INDRV6+J-1))
                IF (TMP2 .LE. ZERO) GO TO 1350
                TAU=MIN(TAU,TMP2)
             ENDDO
-            TMP2=A(N)-HALF*B(N-1)
+            TMP2=WORK2(INDRV5+N)-HALF*WORK2(INDRV6+N-1)
             IF (TMP2 .LE. ZERO) GO TO 1350
             TAU=MIN(TAU,TMP2)
 *     
@@ -826,6 +897,7 @@
                B(M) = S1*WORK2(INDRV5+M)
                
                TMP4 = DFMA0(C1,WORK2(INDRV5+M),-TAU)
+               IF(TMP4 .LT. ZERO .AND. TAU+TMP4 .EQ. TAU) TMP4=ZERO
                IF(TMP4 .LT. ZERO) THEN
                   DO K=0,MAXREC
                      TAU2 = MAX(ONE-DBLE(K)*EPS,ZERO)*
@@ -890,6 +962,7 @@
                B(M) = S1*WORK2(INDRV5+M)
                
                TMP4 = DFMA0(C1,WORK2(INDRV5+M),-TAU)
+               IF(TMP4 .LT. ZERO .AND. TAU+TMP4 .EQ. TAU) TMP4=ZERO
                IF(TMP4 .LT. ZERO) THEN
                   DO K=0,MAXREC
                      TAU2 = MAX(ONE-DBLE(K)*EPS,ZERO)*
@@ -951,17 +1024,7 @@
 *     
             GO TO 410
 *     
- 1350       TMP1 = WORK2(INDRV5+N)
-            DO J = N-1, M, -1
-               CALL DLARTG2(TMP1,WORK2(INDRV6+J),C1,S1,A(J+1))
-               WORK2(INDRV1+J+1) = C1
-               WORK2(INDRV2+J+1) = S1
-               B(J) = S1*WORK2(INDRV5+J)
-               TMP1 = C1*WORK2(INDRV5+J)
-            ENDDO
-            A(M) = TMP1
-*     
-            DO J = N-1, M, -1
+ 1350       DO J = N-1, M, -1
                IF( ( WORK2(INDRV3+J+1).NE.ONE ) .OR. 
      $              ( WORK2(INDRV4+J+1).NE.ZERO ) ) THEN
                   CALL DROT(N0,SVT(J+1,1),LDSVT,SVT(J,1),LDSVT,
@@ -976,7 +1039,124 @@
      $                 WORK2(INDRV3+J+1),WORK2(INDRV4+J+1))
                ENDIF
             ENDDO
+
+            GO TO 1395
             
+ 1390       IF (N-M+1 .EQ. 1) THEN
+            
+               CALL DLARTG2(WORK2(INDRV5+N),SIGMA,C1,S1,TMP1)
+               
+               IF( ( C1.NE.ONE ) .OR. ( S1.NE.ZERO ) ) THEN
+                  CALL DROT(N0,SU(1,N),1,WORK(1,N),1,C1,S1)
+               ENDIF
+               
+               CALL DLARTG7(SIGMA,DESIG,WORK2(INDRV5+N),A(N),DESIG0)
+               
+               GO TO 700
+               
+            ENDIF
+            
+            IF (N-M+1 .EQ. 2) THEN
+               
+               CALL DLASV2(WORK2(INDRV5+N-1), WORK2(INDRV6+N-1),
+     $              WORK2(INDRV5+N), WORK2(INDRV5+N), WORK2(INDRV5+N-1),
+     $              S1, C1, S2, C2)
+               
+               IF( ( C1.NE.ONE ) .OR. ( S1.NE.ZERO ) ) THEN
+                  CALL DROT(N0,SVT(N-1,1),LDSVT,SVT(N,1),LDSVT,C1,S1)
+               ENDIF
+               
+               IF( ( C2.NE.ONE ) .OR. ( S2.NE.ZERO ) ) THEN
+                  CALL DROT(N0,SU(1,N-1),1,SU(1,N),1,C2,S2)
+               ENDIF
+               
+               IF( ( C1.NE.ONE ) .OR. ( S1.NE.ZERO ) ) THEN
+                  CALL DROT(N0,WORK(1,N-1),1,WORK(1,N),1,C1,S1)
+               ENDIF
+               
+               CALL DLARTG2(WORK2(INDRV5+N-1),SIGMA,C1,S1,TMP1)
+               
+               IF( ( C1.NE.ONE ) .OR. ( S1.NE.ZERO ) ) THEN
+                  CALL DROT(N0,SU(1,N-1),1,WORK(1,N-1),1,C1,S1)
+               ENDIF
+               
+               CALL DLARTG7(SIGMA,DESIG,WORK2(INDRV5+N-1),A(N-1),DESIG0)
+               
+               CALL DLARTG2(WORK2(INDRV5+N),SIGMA,C1,S1,TMP1)
+               
+               IF( ( C1.NE.ONE ) .OR. ( S1.NE.ZERO ) ) THEN
+                  CALL DROT(N0,SU(1,N),1,WORK(1,N),1,C1,S1)
+               ENDIF
+               
+               CALL DLARTG7(SIGMA,DESIG,WORK2(INDRV5+N),A(N),DESIG0)
+               
+               GO TO 700
+            ENDIF
+            
+ 1395       IF (WORK2(INDRV6+N-1) .LE. SIGMA2) THEN
+               
+               CALL DLARTG2(WORK2(INDRV5+N),SIGMA,C1,S1,TMP1)
+               
+               IF( ( C1.NE.ONE ) .OR. ( S1.NE.ZERO ) ) THEN
+                  CALL DROT(N0,SU(1,N),1,WORK(1,N),1,C1,S1)
+               ENDIF
+               
+               CALL DLARTG7(SIGMA,DESIG,WORK2(INDRV5+N),A(N),DESIG0)
+               
+               N = N - 1
+               GO TO 1390
+               
+            ENDIF
+*     
+            IF (WORK2(INDRV6+N-2) .LE. SIGMA2) THEN
+               
+               CALL DLASV2(WORK2(INDRV5+N-1), WORK2(INDRV6+N-1),
+     $              WORK2(INDRV5+N), WORK2(INDRV5+N), WORK2(INDRV5+N-1),
+     $              S1, C1, S2, C2)
+               
+               IF( ( C1.NE.ONE ) .OR. ( S1.NE.ZERO ) ) THEN
+                  CALL DROT(N0,SVT(N-1,1),LDSVT,SVT(N,1),LDSVT,C1,S1)
+               ENDIF
+               
+               IF( ( C2.NE.ONE ) .OR. ( S2.NE.ZERO ) ) THEN
+                  CALL DROT(N0,SU(1,N-1),1,SU(1,N),1,C2,S2)
+               ENDIF
+               
+               IF( ( C1.NE.ONE ) .OR. ( S1.NE.ZERO ) ) THEN
+                  CALL DROT(N0,WORK(1,N-1),1,WORK(1,N),1,C1,S1)
+               ENDIF
+               
+               CALL DLARTG2(WORK2(INDRV5+N-1),SIGMA,C1,S1,TMP1)
+               
+               IF( ( C1.NE.ONE ) .OR. ( S1.NE.ZERO ) ) THEN
+                  CALL DROT(N0,SU(1,N-1),1,WORK(1,N-1),1,C1,S1)
+               ENDIF
+               
+               CALL DLARTG7(SIGMA,DESIG,WORK2(INDRV5+N-1),A(N-1),DESIG0)
+               
+               CALL DLARTG2(WORK2(INDRV5+N),SIGMA,C1,S1,TMP1)
+               
+               IF( ( C1.NE.ONE ) .OR. ( S1.NE.ZERO ) ) THEN
+                  CALL DROT(N0,SU(1,N),1,WORK(1,N),1,C1,S1)
+               ENDIF
+               
+               CALL DLARTG7(SIGMA,DESIG,WORK2(INDRV5+N),A(N),DESIG0)
+               
+               N = N - 2
+               GO TO 1390
+               
+            ENDIF
+
+            TMP1 = WORK2(INDRV5+N)
+            DO J = N-1, M, -1
+               CALL DLARTG2(TMP1,WORK2(INDRV6+J),C1,S1,A(J+1))
+               WORK2(INDRV1+J+1) = C1
+               WORK2(INDRV2+J+1) = S1
+               B(J) = S1*WORK2(INDRV5+J)
+               TMP1 = C1*WORK2(INDRV5+J)
+            ENDDO
+            A(M) = TMP1
+*     
             DO J = N-1, M, -1
                IF( ( WORK2(INDRV1+J+1).NE.ONE ) .OR. 
      $              ( WORK2(INDRV2+J+1).NE.ZERO ) ) THEN

@@ -20,25 +20,3 @@ fileinput_gkl:
 clean:
 	rm -rf lib/*.o src/*.o fileinput_gkl
 
-
-#%.o: src/%.f90
-#	${FC} ${FCFLAG} -c -o src/$@ $< ${LIB}
-#%.o: lib/%.f
-#	${FC} ${FCFLAG} -c -o lib/$@ $<
-#	gfortran -O3 -mtune=native -march=native -c -o lib/$@ $<
-#-L/usr/lib/gcc/x86_64-linux-gnu/4.8/libgfortran.a
-
-#DRV=./Driver
-#TriEVD=./srcTriEVD
-#RGKL=srcRGKL
-#MKMAT=SVD_MKMAT
-#ifdef debug
-#   CCFLAG=-Wall -g -mcmodel=medium -shared-intel -Wall
-#   FCFLAG=-warn all -CB -traceback -g -mcmodel=medium -shared-intel
-#else
-#   CCFLAG=-fp-model precise -O3 -ipo -xHOST -mcmodel=medium -shared-intel -Wall
-#   FCFLAG=-fp-model precise -O3 -ipo -xHOST -mcmodel=medium -shared-intel
-#endif
-##LIB=-mkl -L/opt/intel/lib/intel64 -lifcore -lifcore_pic -lifcoremt -lifport -lchkpwrap -qopenmp
-
-
