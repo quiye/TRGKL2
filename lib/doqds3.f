@@ -354,6 +354,7 @@
                WORK2(INDRV6+N-1) = S1*A(N)
                
                TMP4 = DFMA0(C1,A(N),-TAU)
+               IF(TMP4 .LT. ZERO .AND. TAU+TMP4 .EQ. TAU) TMP4=ZERO
                IF(TMP4 .LT. ZERO) THEN
                   DO K=0,MAXREC
                      TAU2 = MAX(ONE-DBLE(K)*EPS,ZERO)*(C1*A(N))
@@ -415,6 +416,7 @@
                WORK2(INDRV6+N-1) = S1*A(N)
                
                TMP4 = DFMA0(C1,A(N),-TAU)
+               IF(TMP4 .LT. ZERO .AND. TAU+TMP4 .EQ. TAU) TMP4=ZERO
                IF(TMP4 .LT. ZERO) THEN
                   DO K=0,MAXREC
                      TAU2 = MAX(ONE-DBLE(K)*EPS,ZERO)*(C1*A(N))
@@ -734,6 +736,7 @@
                B(M) = S1*WORK2(INDRV5+M)
                
                TMP4 = DFMA0(C1,WORK2(INDRV5+M),-TAU)
+               IF(TMP4 .LT. ZERO .AND. TAU+TMP4 .EQ. TAU) TMP4=ZERO
                IF(TMP4 .LT. ZERO) THEN
                   DO K=0,MAXREC
                      TAU2 = MAX(ONE-DBLE(K)*EPS,ZERO)*
@@ -798,6 +801,7 @@
                B(M) = S1*WORK2(INDRV5+M)
                
                TMP4 = DFMA0(C1,WORK2(INDRV5+M),-TAU)
+               IF(TMP4 .LT. ZERO .AND. TAU+TMP4 .EQ. TAU) TMP4=ZERO
                IF(TMP4 .LT. ZERO) THEN
                   DO K=0,MAXREC
                      TAU2 = MAX(ONE-DBLE(K)*EPS,ZERO)*
