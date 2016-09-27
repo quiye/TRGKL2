@@ -8,9 +8,9 @@
       DOUBLE PRECISION SVT(LDSVT, *), WORK2(*)
       INTEGER N, M, I, J, K, OLDM, OLDN, IDIR, M0
       INTEGER INDRV1, INDRV2, INDRV3, INDRV4, INDRV5, INDRV6
-      DOUBLE PRECISION TMP1, TMP2, TMP3, TMP4
-      DOUBLE PRECISION TAU, TAU2
-      DOUBLE PRECISION SIGMA, SIGMA2, DESIG, T, DESIG0
+      DOUBLE PRECISION TMP1, TMP2, TMP3, TMP4, TMP5
+      DOUBLE PRECISION TAU, TAU1, TAU2
+      DOUBLE PRECISION SIGMA, SIGMA2, DESIG, T, DESIG0, S
       DOUBLE PRECISION C1, S1, C2, S2, SMIN, EPS, TOL
       
       DOUBLE PRECISION ONE, ZERO, HALF, TWO
@@ -63,7 +63,7 @@
 
             TMP1 = A(1)
             DO J = 1, N0-1
-               CALL DLARTG2(TMP1,B(J),C1,S1,A(J))
+               CALL DLARTG(TMP1,B(J),C1,S1,A(J))
                WORK2(INDRV3+J) = C1
                WORK2(INDRV4+J) = S1
                B(J) = S1*A(J+1)
@@ -85,7 +85,7 @@
 
             TMP1 = A(N0)
             DO J = N0-1,1,-1
-               CALL DLARTG2(TMP1,B(J),C1,S1,A(J+1))
+               CALL DLARTG(TMP1,B(J),C1,S1,A(J+1))
                WORK2(INDRV1+J+1) = C1
                WORK2(INDRV2+J+1) = S1
                B(J) = S1*A(J)
@@ -219,29 +219,34 @@
             IF (T .LE. SIGMA .AND. SIT .EQ. 1) GO TO 350
 
             TAU2 = MINVAL(A(M:N-1))
-            IF (TAU .GE. TAU2) THEN
+            IF (TAU2 .LE. TAU) THEN
                IF (TAU2 .EQ. ZERO) GO TO 350
                CALL DLARTG7(SIGMA,DESIG,TAU2,T,DESIG0)
                IF (T .LE. SIGMA .AND. SIT .EQ. 1) GO TO 350
+               TAU1 = TAU2
                GO TO 160
+            ELSE
+               TAU1 = TAU
             ENDIF
 *     
             TMP4 = A(M)-TAU
+            TMP5 = A(M)+TAU
             IF (TMP4 .LE. ZERO) THEN
                GO TO 160
             ELSE
-               TMP3 = SQRT(TMP4)*SQRT(A(M)+TAU)
+               TMP3 = SQRT(TMP4)*SQRT(TMP5)
             ENDIF
             DO J = M, N-2
-               CALL DLARTG4(TMP3,B(J),C1)
+               CALL DLARTG(TMP3,B(J),C1,S1,T)
                TMP4 = DFMA0(C1,A(J+1),-TAU)
+               TMP5 = DFMA0(C1,A(J+1),TAU)
                IF (TMP4 .LE. ZERO) THEN
                   GO TO 160
                ELSE
-                  TMP3 = SQRT(TMP4)*SQRT(DFMA0(C1,A(J+1),TAU))
+                  TMP3 = SQRT(TMP4)*SQRT(TMP5)
                ENDIF
             ENDDO
-            CALL DLARTG4(TMP3,B(N-1),C1)
+            CALL DLARTG(TMP3,B(N-1),C1,S1,T)
             TMP4 = DFMA0(C1,A(N),-TAU)
             IF (TMP4 .LT. ZERO) THEN
                DO K=0,MAXREC
@@ -292,6 +297,7 @@
                TAU = MAX(TAU,ONE/SQRT(TMP1)/SQRT(TMP3))
             ENDIF
 
+            TAU = MIN(TAU,TAU1)
             IF (TAU .GT. ZERO) GO TO 125
        
             TAU=A(N)-HALF*B(N-1)
@@ -312,6 +318,7 @@
             IF (SIGMA .EQ. ZERO) THEN
 *     
                TMP4 = A(M)-TAU
+               TMP5 = A(M)+TAU
                IF (TMP4 .LE. ZERO) THEN
                   DO K=0,MAXREC
                      TAU2 = MAX(ONE-DBLE(K)*EPS,ZERO)*A(M)
@@ -320,19 +327,20 @@
                   TAU = TAU2
                   GO TO 125
                ELSE
-                  TMP3 = SQRT(TMP4)*SQRT(A(M)+TAU)
+                  TMP3 = SQRT(TMP4)*SQRT(TMP5)
                ENDIF
                
-               CALL DLARTG3(TMP3,-T,C1,S1)
+               CALL DLARTG(TMP3,T,C1,S1,S)
                WORK2(INDRV1+2*M-1) = C1
-               WORK2(INDRV2+2*M-1) = S1
+               WORK2(INDRV2+2*M-1) = -S1
                DO J = M, N-2
-                  CALL DLARTG2(TMP3,B(J),C1,S1,WORK2(INDRV5+J))
+                  CALL DLARTG(TMP3,B(J),C1,S1,WORK2(INDRV5+J))
                   WORK2(INDRV1+2*J) = C1
                   WORK2(INDRV2+2*J) = S1
                   WORK2(INDRV6+J) = S1*A(J+1)
                   
                   TMP4 = DFMA0(C1,A(J+1),-TAU)
+                  TMP5 = DFMA0(C1,A(J+1),TAU)
                   IF (TMP4 .LE. ZERO) THEN
                      DO K=0,MAXREC
                         TAU2 = MAX(ONE-DBLE(K)*EPS,ZERO)*(C1*A(J+1))
@@ -341,21 +349,22 @@
                      TAU = MAX(HALF*TAU,TAU2)
                      GO TO 125
                   ELSE
-                     TMP3 = SQRT(TMP4)*SQRT(DFMA0(C1,A(J+1),TAU))
+                     TMP3 = SQRT(TMP4)*SQRT(TMP5)
                   ENDIF
                   
-                  CALL DLARTG3(TMP3,-T,C1,S1)
+                  CALL DLARTG(TMP3,T,C1,S1,S)
                   WORK2(INDRV1+2*J+1) = C1
-                  WORK2(INDRV2+2*J+1) = S1
+                  WORK2(INDRV2+2*J+1) = -S1
                ENDDO
-               CALL DLARTG2(TMP3,B(N-1),C1,S1,WORK2(INDRV5+N-1))
+               CALL DLARTG(TMP3,B(N-1),C1,S1,WORK2(INDRV5+N-1))
                WORK2(INDRV1+2*N-2) = C1
                WORK2(INDRV2+2*N-2) = S1
                WORK2(INDRV6+N-1) = S1*A(N)
                
                TMP4 = DFMA0(C1,A(N),-TAU)
-               IF(TMP4 .LT. ZERO .AND. TAU+TMP4 .EQ. TAU) TMP4=ZERO
-               IF(TMP4 .LT. ZERO) THEN
+               TMP5 = DFMA0(C1,A(N),TAU)
+               IF (TMP4 .LT. ZERO .AND. TAU+TMP4 .EQ. TAU) TMP4 = ZERO
+               IF (TMP4 .LT. ZERO) THEN
                   DO K=0,MAXREC
                      TAU2 = MAX(ONE-DBLE(K)*EPS,ZERO)*(C1*A(N))
                      IF (TAU2 .LT. TAU) EXIT
@@ -363,17 +372,18 @@
                   TAU = MAX(HALF*TAU,TAU2)
                   GO TO 125
                ELSE
-                  TMP3 = SQRT(TMP4)*SQRT(DFMA0(C1,A(N),TAU))
+                  TMP3 = SQRT(TMP4)*SQRT(TMP5)
                ENDIF
                
-               CALL DLARTG3(TMP3,-T,C1,S1)
+               CALL DLARTG(TMP3,T,C1,S1,S)
                WORK2(INDRV1+2*N-1) = C1
-               WORK2(INDRV2+2*N-1) = S1
+               WORK2(INDRV2+2*N-1) = -S1
                WORK2(INDRV5+N) = TMP3
 *     
             ELSE
 *     
                TMP4 = A(M)-TAU
+               TMP5 = A(M)+TAU
                IF (TMP4 .LE. ZERO) THEN
                   DO K=0,MAXREC
                      TAU2 = MAX(ONE-DBLE(K)*EPS,ZERO)*A(M)
@@ -382,19 +392,20 @@
                   TAU = TAU2
                   GO TO 125
                ELSE
-                  TMP3 = SQRT(TMP4)*SQRT(A(M)+TAU)
+                  TMP3 = SQRT(TMP4)*SQRT(TMP5)
                ENDIF
                
                CALL DLARTG6(A(M),TMP3,SIGMA,T,C1,S1)
                WORK2(INDRV1+2*M-1) = C1
                WORK2(INDRV2+2*M-1) = S1
                DO J = M, N-2
-                  CALL DLARTG2(TMP3,B(J),C1,S1,WORK2(INDRV5+J))
+                  CALL DLARTG(TMP3,B(J),C1,S1,WORK2(INDRV5+J))
                   WORK2(INDRV1+2*J) = C1
                   WORK2(INDRV2+2*J) = S1
                   WORK2(INDRV6+J) = S1*A(J+1)
                   
                   TMP4 = DFMA0(C1,A(J+1),-TAU)
+                  TMP5 = DFMA0(C1,A(J+1),TAU)
                   IF (TMP4 .LE. ZERO) THEN
                      DO K=0,MAXREC
                         TAU2 = MAX(ONE-DBLE(K)*EPS,ZERO)*(C1*A(J+1))
@@ -403,21 +414,22 @@
                      TAU = MAX(HALF*TAU,TAU2)
                      GO TO 125
                   ELSE
-                     TMP3 = SQRT(TMP4)*SQRT(DFMA0(C1,A(J+1),TAU))
+                     TMP3 = SQRT(TMP4)*SQRT(TMP5)
                   ENDIF
                   
                   CALL DLARTG6(C1*A(J+1),TMP3,SIGMA,T,C1,S1)
                   WORK2(INDRV1+2*J+1) = C1
                   WORK2(INDRV2+2*J+1) = S1
                ENDDO
-               CALL DLARTG2(TMP3,B(N-1),C1,S1,WORK2(INDRV5+N-1))
+               CALL DLARTG(TMP3,B(N-1),C1,S1,WORK2(INDRV5+N-1))
                WORK2(INDRV1+2*N-2) = C1
                WORK2(INDRV2+2*N-2) = S1
                WORK2(INDRV6+N-1) = S1*A(N)
                
                TMP4 = DFMA0(C1,A(N),-TAU)
-               IF(TMP4 .LT. ZERO .AND. TAU+TMP4 .EQ. TAU) TMP4=ZERO
-               IF(TMP4 .LT. ZERO) THEN
+               TMP5 = DFMA0(C1,A(N),TAU)
+               IF (TMP4 .LT. ZERO .AND. TAU+TMP4 .EQ. TAU) TMP4 = ZERO
+               IF (TMP4 .LT. ZERO) THEN
                   DO K=0,MAXREC
                      TAU2 = MAX(ONE-DBLE(K)*EPS,ZERO)*(C1*A(N))
                      IF (TAU2 .LT. TAU) EXIT
@@ -425,11 +437,12 @@
                   TAU = MAX(HALF*TAU,TAU2)
                   GO TO 125
                ELSE
-                  TMP3 = SQRT(TMP4)*SQRT(DFMA0(C1,A(N),TAU))
+                  TMP3 = SQRT(TMP4)*SQRT(TMP5)
                ENDIF
                
                IF (TMP3 .EQ. ZERO) THEN
-                  CALL DLARTG3(SIGMA,-C1*A(N),C1,S1)
+                  CALL DLARTG(SIGMA,C1*A(N),C1,S1,S)
+                  S1 = -S1
                ELSE
                   CALL DLARTG6(C1*A(N),TMP3,SIGMA,T,C1,S1)
                ENDIF
@@ -445,7 +458,7 @@
 *     
             TMP1 = WORK2(INDRV5+M)
             DO J = M, N-1
-               CALL DLARTG2(TMP1,WORK2(INDRV6+J),C1,S1,A(J))
+               CALL DLARTG(TMP1,WORK2(INDRV6+J),C1,S1,A(J))
                WORK2(INDRV3+J) = C1
                WORK2(INDRV4+J) = S1
                B(J) = S1*WORK2(INDRV5+J+1)
@@ -465,76 +478,21 @@
 *     
  350        TMP1 = A(M)
             DO J = M, N-1
-               CALL DLARTG2(TMP1,B(J),C1,S1,WORK2(INDRV5+J))
+               CALL DLARTG(TMP1,B(J),C1,S1,A(J))
                WORK2(INDRV1+J) = C1
                WORK2(INDRV2+J) = S1
-               WORK2(INDRV6+J) = S1*A(J+1)
+               B(J) = S1*A(J+1)
                TMP1 = C1*A(J+1)
             ENDDO
-            WORK2(INDRV5+N) = TMP1
+            A(N) = TMP1
 *     
-            GO TO 395
-*     
- 390        IF (N-M+1 .EQ. 1) THEN
-            
-               CALL DLARTG7(SIGMA,DESIG,WORK2(INDRV5+N),A(N),DESIG0)
-               
-               GO TO 700
-               
-            ENDIF
-            
-            IF (N-M+1 .EQ. 2) THEN
-               
-               CALL DLASV2(WORK2(INDRV5+N-1), WORK2(INDRV6+N-1),
-     $              WORK2(INDRV5+N), WORK2(INDRV5+N), WORK2(INDRV5+N-1),
-     $              S1, C1, S2, C2)
-               
-               IF( ( C1.NE.ONE ) .OR. ( S1.NE.ZERO ) ) THEN
-                  CALL DROT(N0,SVT(N-1,1),LDSVT,SVT(N,1),LDSVT,C1,S1)
-               ENDIF
-               
-               CALL DLARTG7(SIGMA,DESIG,WORK2(INDRV5+N-1),A(N-1),DESIG0)
-               
-               CALL DLARTG7(SIGMA,DESIG,WORK2(INDRV5+N),A(N),DESIG0)
-               
-               GO TO 700
-            ENDIF
-            
- 395        IF (WORK2(INDRV6+N-1) .LE. SIGMA2) THEN
-               
-               CALL DLARTG7(SIGMA,DESIG,WORK2(INDRV5+N),A(N),DESIG0)
-               
-               N = N - 1
-               GO TO 390
-               
-            ENDIF
-*     
-            IF (WORK2(INDRV6+N-2) .LE. SIGMA2) THEN
-               
-               CALL DLASV2(WORK2(INDRV5+N-1), WORK2(INDRV6+N-1),
-     $              WORK2(INDRV5+N), WORK2(INDRV5+N), WORK2(INDRV5+N-1),
-     $              S1, C1, S2, C2)
-               
-               IF( ( C1.NE.ONE ) .OR. ( S1.NE.ZERO ) ) THEN
-                  CALL DROT(N0,SVT(N-1,1),LDSVT,SVT(N,1),LDSVT,C1,S1)
-               ENDIF
-               
-               CALL DLARTG7(SIGMA,DESIG,WORK2(INDRV5+N-1),A(N-1),DESIG0)
-               
-               CALL DLARTG7(SIGMA,DESIG,WORK2(INDRV5+N),A(N),DESIG0)
-               
-               N = N - 2
-               GO TO 390
-               
-            ENDIF
-*
-            TMP1 = WORK2(INDRV5+M)
+            TMP1 = A(M)
             DO J = M, N-1
-               CALL DLARTG2(TMP1,WORK2(INDRV6+J),C1,S1,A(J))
+               CALL DLARTG(TMP1,B(J),C1,S1,A(J))
                WORK2(INDRV3+J) = C1
                WORK2(INDRV4+J) = S1
-               B(J) = S1*WORK2(INDRV5+J+1)
-               TMP1 = C1*WORK2(INDRV5+J+1)
+               B(J) = S1*A(J+1)
+               TMP1 = C1*A(J+1)
             ENDDO
             A(N) = TMP1
 *     
@@ -576,7 +534,7 @@
 
             TMP1 = A(N)
             DO J = N-1,M,-1
-               CALL DLARTG2(TMP1,B(J),C1,S1,WORK2(INDRV5+J+1))
+               CALL DLARTG(TMP1,B(J),C1,S1,WORK2(INDRV5+J+1))
                WORK2(INDRV3+J+1) = C1
                WORK2(INDRV4+J+1) = S1
                WORK2(INDRV6+J) = S1*A(J)
@@ -601,29 +559,34 @@
             IF (T .LE. SIGMA .AND. SIT .EQ. 1) GO TO 1350
 
             TAU2 = MINVAL(WORK2(INDRV5+M+1:INDRV5+N))
-            IF (TAU .GE. TAU2) THEN
+            IF (TAU2 .LE. TAU) THEN
                IF (TAU2 .EQ. ZERO) GO TO 1350
                CALL DLARTG7(SIGMA,DESIG,TAU2,T,DESIG0)
                IF (T .LE. SIGMA .AND. SIT .EQ. 1) GO TO 1350
+               TAU1 = TAU2
                GO TO 1160
+            ELSE
+               TAU1 = TAU
             ENDIF
 *     
             TMP4 = WORK2(INDRV5+N)-TAU
+            TMP5 = WORK2(INDRV5+N)+TAU
             IF (TMP4 .LE. ZERO) THEN
                GO TO 1160
             ELSE
-               TMP3 = SQRT(TMP4)*SQRT(WORK2(INDRV5+N)+TAU)
+               TMP3 = SQRT(TMP4)*SQRT(TMP5)
             ENDIF
             DO J = N-1,M+1,-1
-               CALL DLARTG4(TMP3,WORK2(INDRV6+J),C1)
+               CALL DLARTG(TMP3,WORK2(INDRV6+J),C1,S1,T)
                TMP4 = DFMA0(C1,WORK2(INDRV5+J),-TAU)
+               TMP5 = DFMA0(C1,WORK2(INDRV5+J),TAU)
                IF (TMP4 .LE. ZERO) THEN
                   GO TO 1160
                ELSE
-                  TMP3 = SQRT(TMP4)*SQRT(DFMA0(C1,WORK2(INDRV5+J),TAU))
+                  TMP3 = SQRT(TMP4)*SQRT(TMP5)
                ENDIF
             ENDDO
-            CALL DLARTG4(TMP3,WORK2(INDRV6+M),C1)
+            CALL DLARTG(TMP3,WORK2(INDRV6+M),C1,S1,T)
             TMP4 = DFMA0(C1,WORK2(INDRV5+M),-TAU)
             IF (TMP4 .LT. ZERO) THEN
                DO K=0,MAXREC
@@ -671,6 +634,7 @@
                TAU = MAX(TAU,ONE/SQRT(TMP1)/SQRT(TMP3))
             ENDIF
 
+            TAU = MIN(TAU,TAU1)
             IF (TAU .GT. ZERO) GO TO 1125
             
             TAU=WORK2(INDRV5+M)-HALF*WORK2(INDRV6+M)
@@ -692,6 +656,7 @@
             IF (SIGMA .EQ. ZERO) THEN
 *     
                TMP4 = WORK2(INDRV5+N)-TAU
+               TMP5 = WORK2(INDRV5+N)+TAU
                IF (TMP4 .LE. ZERO) THEN
                   DO K=0,MAXREC
                      TAU2 = MAX(ONE-DBLE(K)*EPS,ZERO)*WORK2(INDRV5+N)
@@ -700,19 +665,20 @@
                   TAU = TAU2
                   GO TO 1125
                ELSE
-                  TMP3 = SQRT(TMP4)*SQRT(WORK2(INDRV5+N)+TAU)
+                  TMP3 = SQRT(TMP4)*SQRT(TMP5)
                ENDIF
                
-               CALL DLARTG3(TMP3,-T,C1,S1)
+               CALL DLARTG(TMP3,T,C1,S1,S)
                WORK2(INDRV1+2*N) = C1
-               WORK2(INDRV2+2*N) = S1
+               WORK2(INDRV2+2*N) = -S1
                DO J = N-1, M+1, -1
-                  CALL DLARTG2(TMP3,WORK2(INDRV6+J),C1,S1,A(J+1))
+                  CALL DLARTG(TMP3,WORK2(INDRV6+J),C1,S1,A(J+1))
                   WORK2(INDRV1+2*J+1) = C1
                   WORK2(INDRV2+2*J+1) = S1
                   B(J) = S1*WORK2(INDRV5+J)
                   
                   TMP4 = DFMA0(C1,WORK2(INDRV5+J),-TAU)
+                  TMP5 = DFMA0(C1,WORK2(INDRV5+J),TAU)
                   IF (TMP4 .LE. ZERO) THEN
                      DO K=0,MAXREC
                         TAU2 = MAX(ONE-DBLE(K)*EPS,ZERO)*
@@ -722,22 +688,22 @@
                      TAU = MAX(HALF*TAU,TAU2)
                      GO TO 1125
                   ELSE
-                     TMP3 = SQRT(TMP4)*
-     $                    SQRT(DFMA0(C1,WORK2(INDRV5+J),TAU))
+                     TMP3 = SQRT(TMP4)*SQRT(TMP5)
                   ENDIF
                   
-                  CALL DLARTG3(TMP3,-T,C1,S1)
+                  CALL DLARTG(TMP3,T,C1,S1,S)
                   WORK2(INDRV1+2*J) = C1
-                  WORK2(INDRV2+2*J) = S1
+                  WORK2(INDRV2+2*J) = -S1
                ENDDO
-               CALL DLARTG2(TMP3,WORK2(INDRV6+M),C1,S1,A(M+1))
+               CALL DLARTG(TMP3,WORK2(INDRV6+M),C1,S1,A(M+1))
                WORK2(INDRV1+2*M+1) = C1
                WORK2(INDRV2+2*M+1) = S1
                B(M) = S1*WORK2(INDRV5+M)
                
                TMP4 = DFMA0(C1,WORK2(INDRV5+M),-TAU)
-               IF(TMP4 .LT. ZERO .AND. TAU+TMP4 .EQ. TAU) TMP4=ZERO
-               IF(TMP4 .LT. ZERO) THEN
+               TMP5 = DFMA0(C1,WORK2(INDRV5+M),TAU)
+               IF (TMP4 .LT. ZERO .AND. TAU+TMP4 .EQ. TAU) TMP4 = ZERO
+               IF (TMP4 .LT. ZERO) THEN
                   DO K=0,MAXREC
                      TAU2 = MAX(ONE-DBLE(K)*EPS,ZERO)*
      $                    (C1*WORK2(INDRV5+M))
@@ -746,17 +712,18 @@
                   TAU = MAX(HALF*TAU,TAU2)
                   GO TO 1125
                ELSE
-                  TMP3 = SQRT(TMP4)*SQRT(DFMA0(C1,WORK2(INDRV5+M),TAU))
+                  TMP3 = SQRT(TMP4)*SQRT(TMP5)
                ENDIF
                
-               CALL DLARTG3(TMP3,-T,C1,S1)
+               CALL DLARTG(TMP3,T,C1,S1,S)
                WORK2(INDRV1+2*M) = C1
-               WORK2(INDRV2+2*M) = S1
+               WORK2(INDRV2+2*M) = -S1
                A(M) = TMP3
 *     
             ELSE
 *     
                TMP4 = WORK2(INDRV5+N)-TAU
+               TMP5 = WORK2(INDRV5+N)+TAU
                IF (TMP4 .LE. ZERO) THEN
                   DO K=0,MAXREC
                      TAU2 = MAX(ONE-DBLE(K)*EPS,ZERO)*WORK2(INDRV5+N)
@@ -765,19 +732,20 @@
                   TAU = TAU2
                   GO TO 1125
                ELSE
-                  TMP3 = SQRT(TMP4)*SQRT(WORK2(INDRV5+N)+TAU)
+                  TMP3 = SQRT(TMP4)*SQRT(TMP5)
                ENDIF
                
                CALL DLARTG6(WORK2(INDRV5+N),TMP3,SIGMA,T,C1,S1)
                WORK2(INDRV1+2*N) = C1
                WORK2(INDRV2+2*N) = S1
                DO J = N-1, M+1, -1
-                  CALL DLARTG2(TMP3,WORK2(INDRV6+J),C1,S1,A(J+1))
+                  CALL DLARTG(TMP3,WORK2(INDRV6+J),C1,S1,A(J+1))
                   WORK2(INDRV1+2*J+1) = C1
                   WORK2(INDRV2+2*J+1) = S1
                   B(J) = S1*WORK2(INDRV5+J)
                   
                   TMP4 = DFMA0(C1,WORK2(INDRV5+J),-TAU)
+                  TMP5 = DFMA0(C1,WORK2(INDRV5+J),TAU)
                   IF (TMP4 .LE. ZERO) THEN
                      DO K=0,MAXREC
                         TAU2 = MAX(ONE-DBLE(K)*EPS,ZERO)*
@@ -787,22 +755,22 @@
                      TAU = MAX(HALF*TAU,TAU2)
                      GO TO 1125
                   ELSE
-                     TMP3 = SQRT(TMP4)*
-     $                    SQRT(DFMA0(C1,WORK2(INDRV5+J),TAU))
+                     TMP3 = SQRT(TMP4)*SQRT(TMP5)
                   ENDIF
                   
                   CALL DLARTG6(C1*WORK2(INDRV5+J),TMP3,SIGMA,T,C1,S1)
                   WORK2(INDRV1+2*J) = C1
                   WORK2(INDRV2+2*J) = S1
                ENDDO
-               CALL DLARTG2(TMP3,WORK2(INDRV6+M),C1,S1,A(M+1))
+               CALL DLARTG(TMP3,WORK2(INDRV6+M),C1,S1,A(M+1))
                WORK2(INDRV1+2*M+1) = C1
                WORK2(INDRV2+2*M+1) = S1
                B(M) = S1*WORK2(INDRV5+M)
                
                TMP4 = DFMA0(C1,WORK2(INDRV5+M),-TAU)
-               IF(TMP4 .LT. ZERO .AND. TAU+TMP4 .EQ. TAU) TMP4=ZERO
-               IF(TMP4 .LT. ZERO) THEN
+               TMP5 = DFMA0(C1,WORK2(INDRV5+M),TAU)
+               IF (TMP4 .LT. ZERO .AND. TAU+TMP4 .EQ. TAU) TMP4 = ZERO
+               IF (TMP4 .LT. ZERO) THEN
                   DO K=0,MAXREC
                      TAU2 = MAX(ONE-DBLE(K)*EPS,ZERO)*
      $                    (C1*WORK2(INDRV5+M))
@@ -811,11 +779,12 @@
                   TAU = MAX(HALF*TAU,TAU2)
                   GO TO 1125
                ELSE
-                  TMP3 = SQRT(TMP4)*SQRT(DFMA0(C1,WORK2(INDRV5+M),TAU))
+                  TMP3 = SQRT(TMP4)*SQRT(TMP5)
                ENDIF
                
                IF (TMP3 .EQ. ZERO) THEN
-                  CALL DLARTG3(SIGMA,-C1*WORK2(INDRV5+M),C1,S1)
+                  CALL DLARTG(SIGMA,C1*WORK2(INDRV5+M),C1,S1,S)
+                  S1 = -S1
                ELSE
                   CALL DLARTG6(C1*WORK2(INDRV5+M),TMP3,SIGMA,T,C1,S1)
                ENDIF
@@ -839,78 +808,23 @@
 *     
             GO TO 410
 *     
- 1350       DO J = N-1, M, -1
-               IF( ( WORK2(INDRV3+J+1).NE.ONE ) .OR. 
-     $              ( WORK2(INDRV4+J+1).NE.ZERO ) ) THEN
-                  CALL DROT(N0,SVT(J+1,1),LDSVT,SVT(J,1),LDSVT,
-     $                 WORK2(INDRV3+J+1),WORK2(INDRV4+J+1))
-               ENDIF
-            ENDDO
-*     
-            GO TO 1395
-            
- 1390       IF (N-M+1 .EQ. 1) THEN
-            
-               CALL DLARTG7(SIGMA,DESIG,WORK2(INDRV5+N),A(N),DESIG0)
-               
-               GO TO 700
-               
-            ENDIF
-            
-            IF (N-M+1 .EQ. 2) THEN
-               
-               CALL DLASV2(WORK2(INDRV5+N-1), WORK2(INDRV6+N-1),
-     $              WORK2(INDRV5+N), WORK2(INDRV5+N), WORK2(INDRV5+N-1),
-     $              S1, C1, S2, C2)
-               
-               IF( ( C1.NE.ONE ) .OR. ( S1.NE.ZERO ) ) THEN
-                  CALL DROT(N0,SVT(N-1,1),LDSVT,SVT(N,1),LDSVT,C1,S1)
-               ENDIF
-               
-               CALL DLARTG7(SIGMA,DESIG,WORK2(INDRV5+N-1),A(N-1),DESIG0)
-               
-               CALL DLARTG7(SIGMA,DESIG,WORK2(INDRV5+N),A(N),DESIG0)
-               
-               GO TO 700
-            ENDIF
-            
- 1395       IF (WORK2(INDRV6+N-1) .LE. SIGMA2) THEN
-               
-               CALL DLARTG7(SIGMA,DESIG,WORK2(INDRV5+N),A(N),DESIG0)
-               
-               N = N - 1
-               GO TO 1390
-               
-            ENDIF
-*     
-            IF (WORK2(INDRV6+N-2) .LE. SIGMA2) THEN
-               
-               CALL DLASV2(WORK2(INDRV5+N-1), WORK2(INDRV6+N-1),
-     $              WORK2(INDRV5+N), WORK2(INDRV5+N), WORK2(INDRV5+N-1),
-     $              S1, C1, S2, C2)
-               
-               IF( ( C1.NE.ONE ) .OR. ( S1.NE.ZERO ) ) THEN
-                  CALL DROT(N0,SVT(N-1,1),LDSVT,SVT(N,1),LDSVT,C1,S1)
-               ENDIF
-               
-               CALL DLARTG7(SIGMA,DESIG,WORK2(INDRV5+N-1),A(N-1),DESIG0)
-               
-               CALL DLARTG7(SIGMA,DESIG,WORK2(INDRV5+N),A(N),DESIG0)
-               
-               N = N - 2
-               GO TO 1390
-               
-            ENDIF
-
-            TMP1 = WORK2(INDRV5+N)
+ 1350       TMP1 = WORK2(INDRV5+N)
             DO J = N-1, M, -1
-               CALL DLARTG2(TMP1,WORK2(INDRV6+J),C1,S1,A(J+1))
+               CALL DLARTG(TMP1,WORK2(INDRV6+J),C1,S1,A(J+1))
                WORK2(INDRV1+J+1) = C1
                WORK2(INDRV2+J+1) = S1
                B(J) = S1*WORK2(INDRV5+J)
                TMP1 = C1*WORK2(INDRV5+J)
             ENDDO
             A(M) = TMP1
+*     
+            DO J = N-1, M, -1
+               IF( ( WORK2(INDRV3+J+1).NE.ONE ) .OR. 
+     $              ( WORK2(INDRV4+J+1).NE.ZERO ) ) THEN
+                  CALL DROT(N0,SVT(J+1,1),LDSVT,SVT(J,1),LDSVT,
+     $                 WORK2(INDRV3+J+1),WORK2(INDRV4+J+1))
+               ENDIF
+            ENDDO
 *     
  410        TMP1 = A(N)
             IF (B(N-1) .LE. SIGMA2 .OR. TMP1 .EQ. B(N-1)+TMP1) THEN

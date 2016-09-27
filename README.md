@@ -10,3 +10,11 @@ make
 \#SystemDの時は  
 make -f Makefile_4_SystemD  
 \#する。  
+  
+0927追記  
+現在はfileinput_gkl.cが外部ファイル読み込みに非対応(ベンチマーク).使い方は  
+make  
+./fileinput_gkl 30 s 100 < dd1000000_100000_100.txt  
+  
+fileinput_gkl.c.cが外部ファイル読み込み対応版  
+

@@ -1,106 +1,5 @@
-*> \brief \b DLARTG6 generates a plane rotation with real cosine and real sine.
-*
-*  =========== DOCUMENTATION ===========
-*
-* Online html documentation available at 
-*            http://www.netlib.org/lapack/explore-html/ 
-*
-*> \htmlonly
-*> Download DLARTG6 + dependencies 
-*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/dlartg.f"> 
-*> [TGZ]</a> 
-*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/dlartg.f"> 
-*> [ZIP]</a> 
-*> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/dlartg.f"> 
-*> [TXT]</a>
-*> \endhtmlonly 
-*
-*  Definition:
-*  ===========
-*
-*       SUBROUTINE DLARTG6( F, G, CS, SN, R )
-* 
-*       .. Scalar Arguments ..
-*       DOUBLE PRECISION   CS, F, G, R, SN
-*       ..
-*  
-*
-*> \par Purpose:
-*  =============
-*>
-*> \verbatim
-*>
-*> DLARTG6 generate a plane rotation so that
-*>
-*>    [  CS  SN  ]  .  [ F ]  =  [ R ]   where CS**2 + SN**2 = 1.
-*>    [ -SN  CS  ]     [ G ]     [ 0 ]
-*>
-*> This is a slower, more accurate version of the BLAS1 routine DROTG,
-*> with the following other differences:
-*>    F and G are unchanged on return.
-*>    If G=0, then CS=1 and SN=0.
-*>    If F=0 and (G .ne. 0), then CS=0 and SN=1 without doing any
-*>       floating point operations (saves work in DBDSQR when
-*>       there are zeros on the diagonal).
-*>
-*> If F exceeds G in magnitude, CS will be positive.
-*> \endverbatim
-*
-*  Arguments:
-*  ==========
-*
-*> \param[in] F
-*> \verbatim
-*>          F is DOUBLE PRECISION
-*>          The first component of vector to be rotated.
-*> \endverbatim
-*>
-*> \param[in] G
-*> \verbatim
-*>          G is DOUBLE PRECISION
-*>          The second component of vector to be rotated.
-*> \endverbatim
-*>
-*> \param[out] CS
-*> \verbatim
-*>          CS is DOUBLE PRECISION
-*>          The cosine of the rotation.
-*> \endverbatim
-*>
-*> \param[out] SN
-*> \verbatim
-*>          SN is DOUBLE PRECISION
-*>          The sine of the rotation.
-*> \endverbatim
-*>
-*> \param[out] R
-*> \verbatim
-*>          R is DOUBLE PRECISION
-*>          The nonzero component of the rotated vector.
-*>
-*>  This version has a few statements commented out for thread safety
-*>  (machine parameters are computed on each entry). 10 feb 03, SJH.
-*> \endverbatim
-*
-*  Authors:
-*  ========
-*
-*> \author Univ. of Tennessee 
-*> \author Univ. of California Berkeley 
-*> \author Univ. of Colorado Denver 
-*> \author NAG Ltd. 
-*
-*> \date September 2012
-*
-*> \ingroup auxOTHERauxiliary
-*
-*  =====================================================================
       SUBROUTINE DLARTG6( K, L, M, N, CS, SN )
-*
-*  -- LAPACK auxiliary routine (version 3.4.2) --
-*  -- LAPACK is a software package provided by Univ. of Tennessee,    --
-*  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
-*     September 2012
+      IMPLICIT NONE
 *
 *     .. Scalar Arguments ..
       DOUBLE PRECISION   K, L, M, N
@@ -198,12 +97,12 @@
             SN = ONE
          ENDIF
       ELSE
-         SCALE = MAX( F1, G1 )
+         SCALE = MAX( F1, ABS(G1) )
          IF( SCALE.GE.SAFMX2 ) THEN
  10         CONTINUE
             F1 = F1*SAFMN2
             G1 = G1*SAFMN2
-            SCALE = MAX( F1, G1 )
+            SCALE = MAX( F1, ABS(G1) )
             IF( SCALE.GE.SAFMX2 )
      $           GO TO 10
             R = SQRT( F1**2+G1**2 )
@@ -213,7 +112,7 @@
  30         CONTINUE
             F1 = F1*SAFMX2
             G1 = G1*SAFMX2
-            SCALE = MAX( F1, G1 )
+            SCALE = MAX( F1, ABS(G1) )
             IF( SCALE.LE.SAFMN2 )
      $           GO TO 30
             R = SQRT( F1**2+G1**2 )
