@@ -173,34 +173,10 @@
                   CALL DSWAP(N0,SVT(J,1),LDSVT,SVT(N+M-J,1),LDSVT)
                ENDDO
 
-               OLDM = M
-               OLDN = N
-               
-               TMP1 = A(M)
-               DO J = M, N-1
-                  CALL DLARTG(TMP1,B(J),C1,S1,A(J))
-                  WORK2(INDRV3+J) = C1
-                  WORK2(INDRV4+J) = S1
-                  B(J) = S1*A(J+1)
-                  TMP1 = C1*A(J+1)
-               ENDDO
-               A(N) = TMP1
-*     
-               DO J = M, N-1
-                  IF( ( WORK2(INDRV3+J).NE.ONE ) .OR. 
-     $                 ( WORK2(INDRV4+J).NE.ZERO ) ) THEN
-                     CALL DROT(N0,SVT(J,1),LDSVT,SVT(J+1,1),LDSVT,
-     $                    WORK2(INDRV3+J),WORK2(INDRV4+J))
-                  ENDIF
-               ENDDO
-
-               GO TO 400
+               GO TO 390
             ENDIF
          ENDIF
 *
-         OLDM = M
-         OLDN = N
-
          CALL DLAS2(A(N-1), B(N-1), A(N), TAU, TMP3)
          TAU = MIN(TAU,A(N))
          IF (TAU .EQ. ZERO) GO TO 350
@@ -484,25 +460,28 @@
          ENDDO
          A(N) = TMP1
 *     
-         TMP1 = A(M)
+ 390     TMP1 = A(M)
          DO J = M, N-1
             CALL DLARTG(TMP1,B(J),C1,S1,A(J))
-            WORK2(INDRV3+J) = C1
-            WORK2(INDRV4+J) = S1
+            WORK2(INDRV1+J) = C1
+            WORK2(INDRV2+J) = S1
             B(J) = S1*A(J+1)
             TMP1 = C1*A(J+1)
          ENDDO
          A(N) = TMP1
 *     
          DO J = M, N-1
-            IF( ( WORK2(INDRV3+J).NE.ONE ) .OR. 
-     $           ( WORK2(INDRV4+J).NE.ZERO ) ) THEN
+            IF( ( WORK2(INDRV1+J).NE.ONE ) .OR. 
+     $           ( WORK2(INDRV2+J).NE.ZERO ) ) THEN
                CALL DROT(N0,SVT(J,1),LDSVT,SVT(J+1,1),LDSVT,
-     $              WORK2(INDRV3+J),WORK2(INDRV4+J))
+     $              WORK2(INDRV1+J),WORK2(INDRV2+J))
             ENDIF
          ENDDO
 *     
- 400     TMP1 = A(M)
+ 400     OLDM = M
+         OLDN = N
+*         
+         TMP1 = A(M)
          DO J = M, N-3
             IF (B(J) .LE. SIGMA2 .OR. TMP1 .EQ. B(J)+TMP1) THEN
                B(J) = -SIGMA

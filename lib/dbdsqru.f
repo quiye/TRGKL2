@@ -166,7 +166,7 @@
       EXTERNAL           LSAME, DLAMCH
 *     ..
 *     .. EXTERNAL SUBROUTINES ..
-      EXTERNAL           DLARTG5, DLAS2, DLASRU, DLASV2, DROT, DSCAL,
+      EXTERNAL           DLARTG, DLAS2, DLASRU, DLASV2, DROT, DSCAL,
      $                   DSWAP, XERBLA
 *     ..
 *     .. INTRINSIC FUNCTIONS ..
@@ -229,7 +229,7 @@
 *
       IF( IUPLO.EQ.2 ) THEN
          DO 10 I = 1, N - 1
-            CALL DLARTG5( D( I ), E( I ), CS, SN, R )
+            CALL DLARTG( D( I ), E( I ), CS, SN, R )
             D( I ) = R
             E( I ) = SN*D( I+1 )
             D( I+1 ) = CS*D( I+1 )
@@ -535,8 +535,8 @@
 *
             IF( ROTATE ) THEN
 *
-               CALL DLARTG5( D( LL )*CS, E( LL ), CS, SN, R )
-               CALL DLARTG5( OLDCS*R, D( LL+1 )*SN, OLDCS, OLDSN,
+               CALL DLARTG( D( LL )*CS, E( LL ), CS, SN, R )
+               CALL DLARTG( OLDCS*R, D( LL+1 )*SN, OLDCS, OLDSN,
      $                      D( LL ) )
                WORK( 1 ) = CS
                WORK( 1+NM1 ) = SN
@@ -544,9 +544,9 @@
                WORK( 1+NM13 ) = OLDSN
                IROT = 1
                DO 110 I = LL + 1, M - 1
-                  CALL DLARTG5( D( I )*CS, E( I ), CS, SN, R )
+                  CALL DLARTG( D( I )*CS, E( I ), CS, SN, R )
                   E( I-1 ) = OLDSN*R
-                  CALL DLARTG5( OLDCS*R, D( I+1 )*SN, OLDCS, OLDSN,
+                  CALL DLARTG( OLDCS*R, D( I+1 )*SN, OLDCS, OLDSN,
      $                         D( I ) )
                   IROT = IROT + 1
                   WORK( IROT ) = CS
@@ -574,13 +574,13 @@
 *
             ELSE
 *
-               CALL DLARTG5( D( LL )*CS, E( LL ), CS, SN, R )
-               CALL DLARTG5( OLDCS*R, D( LL+1 )*SN, OLDCS, OLDSN,
+               CALL DLARTG( D( LL )*CS, E( LL ), CS, SN, R )
+               CALL DLARTG( OLDCS*R, D( LL+1 )*SN, OLDCS, OLDSN,
      $                      D( LL ) )
                DO 120 I = LL + 1, M - 1
-                  CALL DLARTG5( D( I )*CS, E( I ), CS, SN, R )
+                  CALL DLARTG( D( I )*CS, E( I ), CS, SN, R )
                   E( I-1 ) = OLDSN*R
-                  CALL DLARTG5( OLDCS*R, D( I+1 )*SN, OLDCS, OLDSN,
+                  CALL DLARTG( OLDCS*R, D( I+1 )*SN, OLDCS, OLDSN,
      $                         D( I ) )
   120          CONTINUE
                H = D( M )*CS
@@ -605,8 +605,8 @@
 *
             IF( ROTATE ) THEN
 *
-               CALL DLARTG5( D( M )*CS, E( M-1 ), CS, SN, R )
-               CALL DLARTG5( OLDCS*R, D( M-1 )*SN, OLDCS, OLDSN, 
+               CALL DLARTG( D( M )*CS, E( M-1 ), CS, SN, R )
+               CALL DLARTG( OLDCS*R, D( M-1 )*SN, OLDCS, OLDSN, 
      $              D( M ) )
                WORK( M-LL ) = CS
                WORK( M-LL+NM1 ) = -SN
@@ -614,9 +614,9 @@
                WORK( M-LL+NM13 ) = -OLDSN
                IROT = M - LL
                DO 130 I = M - 1, LL + 1, -1
-                  CALL DLARTG5( D( I )*CS, E( I-1 ), CS, SN, R )
+                  CALL DLARTG( D( I )*CS, E( I-1 ), CS, SN, R )
                   E( I ) = OLDSN*R
-                  CALL DLARTG5( OLDCS*R, D( I-1 )*SN, OLDCS, OLDSN,
+                  CALL DLARTG( OLDCS*R, D( I-1 )*SN, OLDCS, OLDSN,
      $                         D( I ) )
                   IROT = IROT - 1
                   WORK( IROT ) = CS
@@ -643,13 +643,13 @@
 *
             ELSE
 *
-               CALL DLARTG5( D( M )*CS, E( M-1 ), CS, SN, R )
-               CALL DLARTG5( OLDCS*R, D( M-1 )*SN, OLDCS, OLDSN, 
+               CALL DLARTG( D( M )*CS, E( M-1 ), CS, SN, R )
+               CALL DLARTG( OLDCS*R, D( M-1 )*SN, OLDCS, OLDSN, 
      $              D( M ) )
                DO 140 I = M - 1, LL + 1, -1
-                  CALL DLARTG5( D( I )*CS, E( I-1 ), CS, SN, R )
+                  CALL DLARTG( D( I )*CS, E( I-1 ), CS, SN, R )
                   E( I ) = OLDSN*R
-                  CALL DLARTG5( OLDCS*R, D( I-1 )*SN, OLDCS, OLDSN,
+                  CALL DLARTG( OLDCS*R, D( I-1 )*SN, OLDCS, OLDSN,
      $                         D( I ) )
   140          CONTINUE
                H = D( LL )*CS
@@ -679,12 +679,12 @@
 *
             IF( ROTATE ) THEN
 *
-               CALL DLARTG5( F, G, COSR, SINR, R )
+               CALL DLARTG( F, G, COSR, SINR, R )
                F = COSR*D( LL ) + SINR*E( LL )
                E( LL ) = COSR*E( LL ) - SINR*D( LL )
                G = SINR*D( LL+1 )
                D( LL+1 ) = COSR*D( LL+1 )
-               CALL DLARTG5( F, G, COSL, SINL, R )
+               CALL DLARTG( F, G, COSL, SINL, R )
                D( LL ) = R
                F = COSL*E( LL ) + SINL*D( LL+1 )
                D( LL+1 ) = COSL*D( LL+1 ) - SINL*E( LL )
@@ -696,13 +696,13 @@
                WORK( 1+NM13 ) = SINL
                IROT = 1
                DO 150 I = LL + 1, M - 2
-                  CALL DLARTG5( F, G, COSR, SINR, R )
+                  CALL DLARTG( F, G, COSR, SINR, R )
                   E( I-1 ) = R
                   F = COSR*D( I ) + SINR*E( I )
                   E( I ) = COSR*E( I ) - SINR*D( I )
                   G = SINR*D( I+1 )
                   D( I+1 ) = COSR*D( I+1 )
-                  CALL DLARTG5( F, G, COSL, SINL, R )
+                  CALL DLARTG( F, G, COSL, SINL, R )
                   D( I ) = R
                   F = COSL*E( I ) + SINL*D( I+1 )
                   D( I+1 ) = COSL*D( I+1 ) - SINL*E( I )
@@ -714,13 +714,13 @@
                   WORK( IROT+NM12 ) = COSL
                   WORK( IROT+NM13 ) = SINL
   150          CONTINUE
-               CALL DLARTG5( F, G, COSR, SINR, R )
+               CALL DLARTG( F, G, COSR, SINR, R )
                E( M-2 ) = R
                F = COSR*D( M-1 ) + SINR*E( M-1 )
                E( M-1 ) = COSR*E( M-1 ) - SINR*D( M-1 )
                G = SINR*D( M )
                D( M ) = COSR*D( M )
-               CALL DLARTG5( F, G, COSL, SINL, R )
+               CALL DLARTG( F, G, COSL, SINL, R )
                D( M-1 ) = R
                F = COSL*E( M-1 ) + SINL*D( M )
                D( M ) = COSL*D( M ) - SINL*E( M-1 )
@@ -747,38 +747,38 @@
 *
             ELSE
 *
-               CALL DLARTG5( F, G, COSR, SINR, R )
+               CALL DLARTG( F, G, COSR, SINR, R )
                F = COSR*D( LL ) + SINR*E( LL )
                E( LL ) = COSR*E( LL ) - SINR*D( LL )
                G = SINR*D( LL+1 )
                D( LL+1 ) = COSR*D( LL+1 )
-               CALL DLARTG5( F, G, COSL, SINL, R )
+               CALL DLARTG( F, G, COSL, SINL, R )
                D( LL ) = R
                F = COSL*E( LL ) + SINL*D( LL+1 )
                D( LL+1 ) = COSL*D( LL+1 ) - SINL*E( LL )
                G = SINL*E( LL+1 )
                E( LL+1 ) = COSL*E( LL+1 )
                DO 160 I = LL + 1, M - 2
-                  CALL DLARTG5( F, G, COSR, SINR, R )
+                  CALL DLARTG( F, G, COSR, SINR, R )
                   E( I-1 ) = R
                   F = COSR*D( I ) + SINR*E( I )
                   E( I ) = COSR*E( I ) - SINR*D( I )
                   G = SINR*D( I+1 )
                   D( I+1 ) = COSR*D( I+1 )
-                  CALL DLARTG5( F, G, COSL, SINL, R )
+                  CALL DLARTG( F, G, COSL, SINL, R )
                   D( I ) = R
                   F = COSL*E( I ) + SINL*D( I+1 )
                   D( I+1 ) = COSL*D( I+1 ) - SINL*E( I )
                   G = SINL*E( I+1 )
                   E( I+1 ) = COSL*E( I+1 )
   160          CONTINUE
-               CALL DLARTG5( F, G, COSR, SINR, R )
+               CALL DLARTG( F, G, COSR, SINR, R )
                E( M-2 ) = R
                F = COSR*D( M-1 ) + SINR*E( M-1 )
                E( M-1 ) = COSR*E( M-1 ) - SINR*D( M-1 )
                G = SINR*D( M )
                D( M ) = COSR*D( M )
-               CALL DLARTG5( F, G, COSL, SINL, R )
+               CALL DLARTG( F, G, COSL, SINL, R )
                D( M-1 ) = R
                F = COSL*E( M-1 ) + SINL*D( M )
                D( M ) = COSL*D( M ) - SINL*E( M-1 )
@@ -803,12 +803,12 @@
 *
             IF( ROTATE ) THEN
 *
-               CALL DLARTG5( F, G, COSR, SINR, R )
+               CALL DLARTG( F, G, COSR, SINR, R )
                F = COSR*D( M ) + SINR*E( M-1 )
                E( M-1 ) = COSR*E( M-1 ) - SINR*D( M )
                G = SINR*D( M-1 )
                D( M-1 ) = COSR*D( M-1 )
-               CALL DLARTG5( F, G, COSL, SINL, R )
+               CALL DLARTG( F, G, COSL, SINL, R )
                D( M ) = R
                F = COSL*E( M-1 ) + SINL*D( M-1 )
                D( M-1 ) = COSL*D( M-1 ) - SINL*E( M-1 )
@@ -820,13 +820,13 @@
                WORK( M-LL+NM13 ) = -SINL
                IROT = M - LL
                DO 170 I = M - 1, LL + 2, -1
-                  CALL DLARTG5( F, G, COSR, SINR, R )
+                  CALL DLARTG( F, G, COSR, SINR, R )
                   E( I ) = R
                   F = COSR*D( I ) + SINR*E( I-1 )
                   E( I-1 ) = COSR*E( I-1 ) - SINR*D( I )
                   G = SINR*D( I-1 )
                   D( I-1 ) = COSR*D( I-1 )
-                  CALL DLARTG5( F, G, COSL, SINL, R )
+                  CALL DLARTG( F, G, COSL, SINL, R )
                   D( I ) = R
                   F = COSL*E( I-1 ) + SINL*D( I-1 )
                   D( I-1 ) = COSL*D( I-1 ) - SINL*E( I-1 )
@@ -838,13 +838,13 @@
                   WORK( IROT+NM12 ) = COSL
                   WORK( IROT+NM13 ) = -SINL
   170          CONTINUE
-               CALL DLARTG5( F, G, COSR, SINR, R )
+               CALL DLARTG( F, G, COSR, SINR, R )
                E( LL+1 ) = R
                F = COSR*D( LL+1 ) + SINR*E( LL )
                E( LL ) = COSR*E( LL ) - SINR*D( LL+1 )
                G = SINR*D( LL )
                D( LL ) = COSR*D( LL )
-               CALL DLARTG5( F, G, COSL, SINL, R )
+               CALL DLARTG( F, G, COSL, SINL, R )
                D( LL+1 ) = R
                F = COSL*E( LL ) + SINL*D( LL )
                D( LL ) = COSL*D( LL ) - SINL*E( LL )
@@ -857,38 +857,38 @@
 *
             ELSE
 *
-               CALL DLARTG5( F, G, COSR, SINR, R )
+               CALL DLARTG( F, G, COSR, SINR, R )
                F = COSR*D( M ) + SINR*E( M-1 )
                E( M-1 ) = COSR*E( M-1 ) - SINR*D( M )
                G = SINR*D( M-1 )
                D( M-1 ) = COSR*D( M-1 )
-               CALL DLARTG5( F, G, COSL, SINL, R )
+               CALL DLARTG( F, G, COSL, SINL, R )
                D( M ) = R
                F = COSL*E( M-1 ) + SINL*D( M-1 )
                D( M-1 ) = COSL*D( M-1 ) - SINL*E( M-1 )
                G = SINL*E( M-2 )
                E( M-2 ) = COSL*E( M-2 )
                DO 180 I = M - 1, LL + 2, -1
-                  CALL DLARTG5( F, G, COSR, SINR, R )
+                  CALL DLARTG( F, G, COSR, SINR, R )
                   E( I ) = R
                   F = COSR*D( I ) + SINR*E( I-1 )
                   E( I-1 ) = COSR*E( I-1 ) - SINR*D( I )
                   G = SINR*D( I-1 )
                   D( I-1 ) = COSR*D( I-1 )
-                  CALL DLARTG5( F, G, COSL, SINL, R )
+                  CALL DLARTG( F, G, COSL, SINL, R )
                   D( I ) = R
                   F = COSL*E( I-1 ) + SINL*D( I-1 )
                   D( I-1 ) = COSL*D( I-1 ) - SINL*E( I-1 )
                   G = SINL*E( I-2 )
                   E( I-2 ) = COSL*E( I-2 )
   180          CONTINUE
-               CALL DLARTG5( F, G, COSR, SINR, R )
+               CALL DLARTG( F, G, COSR, SINR, R )
                E( LL+1 ) = R
                F = COSR*D( LL+1 ) + SINR*E( LL )
                E( LL ) = COSR*E( LL ) - SINR*D( LL+1 )
                G = SINR*D( LL )
                D( LL ) = COSR*D( LL )
-               CALL DLARTG5( F, G, COSL, SINL, R )
+               CALL DLARTG( F, G, COSL, SINL, R )
                D( LL+1 ) = R
                F = COSL*E( LL ) + SINL*D( LL )
                D( LL ) = COSL*D( LL ) - SINL*E( LL )

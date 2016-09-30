@@ -86,43 +86,11 @@
       
       F1=K1*L1+M1*N1
       G1=M1*L1-K1*N1
-      IF( G1.EQ.ZERO ) THEN
-         CS = ONE
-         SN = ZERO
-      ELSE IF( F1.EQ.ZERO ) THEN
-         CS = ZERO
-         IF (G1 .LT. ZERO) THEN
-            SN = -ONE
-         ELSE
-            SN = ONE
-         ENDIF
+      IF( G1 .GE. ZERO ) THEN
+         CALL DLARTG(F1,G1,CS,SN,R)
       ELSE
-         SCALE = MAX( F1, ABS(G1) )
-         IF( SCALE.GE.SAFMX2 ) THEN
- 10         CONTINUE
-            F1 = F1*SAFMN2
-            G1 = G1*SAFMN2
-            SCALE = MAX( F1, ABS(G1) )
-            IF( SCALE.GE.SAFMX2 )
-     $           GO TO 10
-            R = SQRT( F1**2+G1**2 )
-            CS = F1 / R
-            SN = G1 / R
-         ELSE IF( SCALE.LE.SAFMN2 ) THEN
- 30         CONTINUE
-            F1 = F1*SAFMX2
-            G1 = G1*SAFMX2
-            SCALE = MAX( F1, ABS(G1) )
-            IF( SCALE.LE.SAFMN2 )
-     $           GO TO 30
-            R = SQRT( F1**2+G1**2 )
-            CS = F1 / R
-            SN = G1 / R
-         ELSE
-            R = SQRT( F1**2+G1**2 )
-            CS = F1 / R
-            SN = G1 / R
-         END IF
+         CALL DLARTG(F1,-G1,CS,SN,R)
+         SN = -SN
       END IF
       RETURN
 *     
