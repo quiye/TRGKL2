@@ -9,13 +9,14 @@
       INTEGER N, M, I, J, K, OLDM, OLDN, M0
       INTEGER INDRV1, INDRV2, INDRV3, INDRV4, INDRV5, INDRV6
       DOUBLE PRECISION TMP1, TMP2, TMP3, TMP4, TMP5
-      DOUBLE PRECISION TAU, TAU1, TAU2
+      DOUBLE PRECISION TAU, TAU1, TAU2, TAU3
       DOUBLE PRECISION SIGMA, SIGMA2, DESIG, T, DESIG0, S
       DOUBLE PRECISION C1, S1, C2, S2, SMIN, EPS, TOL
       
-      DOUBLE PRECISION ONE, ZERO, HALF, TWO
+      DOUBLE PRECISION ONE, ZERO, HALF, TWO, CONST
       INTEGER MAXREC
       PARAMETER (ONE = 1.0D0, ZERO = 0.0D0, HALF = 0.5D0, TWO = 2.0D0)
+      PARAMETER (CONST = 0.75D0)
       DOUBLE PRECISION HUNDRD 
       PARAMETER (HUNDRD = 100.0D0)
       PARAMETER (MAXREC = 2000000000)
@@ -181,9 +182,7 @@
          TAU = MIN(TAU,A(N))
          IF (TAU .EQ. ZERO) GO TO 350
          
-         TMP2 = MIN(A(N),A(N-1))
-         TMP3 = MAX(A(N),A(N-1))
-         IF (TMP3 .GE. TWO*TMP2) THEN
+         IF (TMP3 .GE. TWO*TAU) THEN
             SIT = 1
          ELSE
             SIT = 0
@@ -320,7 +319,9 @@
                      TAU2 = MAX(ONE-DBLE(K)*EPS,ZERO)*(C1*A(J+1))
                      IF (TAU2 .LT. TAU) EXIT
                   ENDDO
-                  TAU = MAX(HALF*TAU,TAU2)
+                  TAU3 = CONST*TAU
+                  IF (TAU3 .GE. TAU) TAU3 = HALF*TAU
+                  TAU = MAX(TAU3,TAU2)
                   GO TO 125
                ELSE
                   TMP3 = SQRT(TMP4)*SQRT(TMP5)
@@ -343,7 +344,9 @@
                   TAU2 = MAX(ONE-DBLE(K)*EPS,ZERO)*(C1*A(N))
                   IF (TAU2 .LT. TAU) EXIT
                ENDDO
-               TAU = MAX(HALF*TAU,TAU2)
+               TAU3 = CONST*TAU
+               IF (TAU3 .GE. TAU) TAU3 = HALF*TAU
+               TAU = MAX(TAU3,TAU2)
                GO TO 125
             ELSE
                TMP3 = SQRT(TMP4)*SQRT(TMP5)
@@ -385,7 +388,9 @@
                      TAU2 = MAX(ONE-DBLE(K)*EPS,ZERO)*(C1*A(J+1))
                      IF (TAU2 .LT. TAU) EXIT
                   ENDDO
-                  TAU = MAX(HALF*TAU,TAU2)
+                  TAU3 = CONST*TAU
+                  IF (TAU3 .GE. TAU) TAU3 = HALF*TAU
+                  TAU = MAX(TAU3,TAU2)
                   GO TO 125
                ELSE
                   TMP3 = SQRT(TMP4)*SQRT(TMP5)
@@ -408,7 +413,9 @@
                   TAU2 = MAX(ONE-DBLE(K)*EPS,ZERO)*(C1*A(N))
                   IF (TAU2 .LT. TAU) EXIT
                ENDDO
-               TAU = MAX(HALF*TAU,TAU2)
+               TAU3 = CONST*TAU
+               IF (TAU3 .GE. TAU) TAU3 = HALF*TAU
+               TAU = MAX(TAU3,TAU2)
                GO TO 125
             ELSE
                TMP3 = SQRT(TMP4)*SQRT(TMP5)
