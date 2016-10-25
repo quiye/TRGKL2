@@ -166,7 +166,7 @@
       EXTERNAL           LSAME, DLAMCH
 *     ..
 *     .. EXTERNAL SUBROUTINES ..
-      EXTERNAL           DLARTG, DLAS2, DLASRU, DLASV2, DROT, DSCAL,
+      EXTERNAL           DLARTG, DLAS2, DLASR, DLASV2, DROT, DSCAL,
      $                   DSWAP, XERBLA
 *     ..
 *     .. INTRINSIC FUNCTIONS ..
@@ -242,10 +242,10 @@
 *        UPDATE SINGULAR VECTORS IF DESIRED
 *
          IF( NRU.GT.0 )
-     $      CALL DLASRU( 'R', 'V', 'F', NRU, N, WORK( 1 ), WORK( N ), U,
+     $      CALL DLASR( 'R', 'V', 'F', NRU, N, WORK( 1 ), WORK( N ), U,
      $                  LDU )
          IF( NCC.GT.0 )
-     $      CALL DLASRU( 'L', 'V', 'F', N, NCC, WORK( 1 ), WORK( N ), C,
+     $      CALL DLASR( 'L', 'V', 'F', N, NCC, WORK( 1 ), WORK( N ), C,
      $                  LDC )
       END IF
 *
@@ -561,14 +561,14 @@
 *              UPDATE SINGULAR VECTORS
 *
                IF( NCVT.GT.0 )
-     $            CALL DLASRU( 'L', 'V', 'F', M-LL+1, NCVT, WORK( 1 ),
+     $            CALL DLASR( 'L', 'V', 'F', M-LL+1, NCVT, WORK( 1 ),
      $                        WORK( N ), VT( LL, 1 ), LDVT )
                IF( NRU.GT.0 )
-     $            CALL DLASRU( 'R', 'V', 'F', NRU, M-LL+1,
+     $            CALL DLASR( 'R', 'V', 'F', NRU, M-LL+1,
      $                        WORK( NM12+1 ), WORK( NM13+1 ),
      $                        U( 1, LL ), LDU )
                IF( NCC.GT.0 )
-     $            CALL DLASRU( 'L', 'V', 'F', M-LL+1, NCC,
+     $            CALL DLASR( 'L', 'V', 'F', M-LL+1, NCC,
      $                        WORK( NM12+1 ), WORK( NM13+1 ),
      $                        C( LL, 1 ), LDC )
 *
@@ -631,14 +631,14 @@
 *              UPDATE SINGULAR VECTORS
 *
                IF( NCVT.GT.0 )
-     $            CALL DLASRU( 'L', 'V', 'B', M-LL+1, NCVT,
+     $            CALL DLASR( 'L', 'V', 'B', M-LL+1, NCVT,
      $                        WORK( NM12+1 ), WORK( NM13+1 ),
      $                        VT( LL, 1 ), LDVT )
                IF( NRU.GT.0 )
-     $            CALL DLASRU( 'R', 'V', 'B', NRU, M-LL+1, WORK( 1 ),
+     $            CALL DLASR( 'R', 'V', 'B', NRU, M-LL+1, WORK( 1 ),
      $                        WORK( N ), U( 1, LL ), LDU )
                IF( NCC.GT.0 )
-     $            CALL DLASRU( 'L', 'V', 'B', M-LL+1, NCC, WORK( 1 ),
+     $            CALL DLASR( 'L', 'V', 'B', M-LL+1, NCC, WORK( 1 ),
      $                        WORK( N ), C( LL, 1 ), LDC )
 *
             ELSE
@@ -734,14 +734,14 @@
 *              UPDATE SINGULAR VECTORS
 *
                IF( NCVT.GT.0 )
-     $            CALL DLASRU( 'L', 'V', 'F', M-LL+1, NCVT, WORK( 1 ),
+     $            CALL DLASR( 'L', 'V', 'F', M-LL+1, NCVT, WORK( 1 ),
      $                        WORK( N ), VT( LL, 1 ), LDVT )
                IF( NRU.GT.0 )
-     $            CALL DLASRU( 'R', 'V', 'F', NRU, M-LL+1,
+     $            CALL DLASR( 'R', 'V', 'F', NRU, M-LL+1,
      $                        WORK( NM12+1 ), WORK( NM13+1 ),
      $                        U( 1, LL ), LDU )
                IF( NCC.GT.0 )
-     $            CALL DLASRU( 'L', 'V', 'F', M-LL+1, NCC,
+     $            CALL DLASR( 'L', 'V', 'F', M-LL+1, NCC,
      $                        WORK( NM12+1 ), WORK( NM13+1 ),
      $                        C( LL, 1 ), LDC )
 *
@@ -904,13 +904,13 @@
 *           UPDATE SINGULAR VECTORS IF DESIRED
 *
             IF( NCVT.GT.0 )
-     $         CALL DLASRU( 'L', 'V', 'B', M-LL+1, NCVT, WORK( NM12+1 ),
+     $         CALL DLASR( 'L', 'V', 'B', M-LL+1, NCVT, WORK( NM12+1 ),
      $                     WORK( NM13+1 ), VT( LL, 1 ), LDVT )
             IF( NRU.GT.0 )
-     $         CALL DLASRU( 'R', 'V', 'B', NRU, M-LL+1, WORK( 1 ),
+     $         CALL DLASR( 'R', 'V', 'B', NRU, M-LL+1, WORK( 1 ),
      $                     WORK( N ), U( 1, LL ), LDU )
             IF( NCC.GT.0 )
-     $         CALL DLASRU( 'L', 'V', 'B', M-LL+1, NCC, WORK( 1 ),
+     $         CALL DLASR( 'L', 'V', 'B', M-LL+1, NCC, WORK( 1 ),
      $                     WORK( N ), C( LL, 1 ), LDC )
          END IF
       END IF
