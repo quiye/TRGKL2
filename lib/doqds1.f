@@ -105,61 +105,65 @@
       M = 1
       N = N0
 *     
-      IF (A(M) .GE. A(N)) THEN
+      IF (N-M+1 .GE. 3) THEN
 
-         TMP1 = A(M)
-         DO J = M, N-3
-            IF (TMP1 .EQ. B(J)+TMP1) THEN
-               B(J) = -ZERO
-               WORK2(INDRV6+J) = -ZERO
-               M = J+1
-               TMP1 = A(J+1)
+         IF (A(M) .GE. A(N)) THEN
+
+            TMP1 = A(M)
+            DO J = M, N-3
+               IF (TMP1 .EQ. B(J)+TMP1) THEN
+                  B(J) = -ZERO
+                  WORK2(INDRV6+J) = -ZERO
+                  M = J+1
+                  TMP1 = A(J+1)
+               ELSE
+                  TMP1 = A(J+1)*(TMP1/(TMP1+B(J)))
+               ENDIF
+            ENDDO
+            
+            IF (TMP1 .EQ. B(N-2)+TMP1) THEN
+               B(N-2) = ZERO
+               TMP1 = A(N-1)
             ELSE
-               TMP1 = A(J+1)*(TMP1/(TMP1+B(J)))
+               TMP1 = A(N-1)*(TMP1/(TMP1+B(N-2)))
             ENDIF
-         ENDDO
-
-         IF (TMP1 .EQ. B(N-2)+TMP1) THEN
-            B(N-2) = ZERO
-            TMP1 = A(N-1)
+            
+            IF (TMP1 .EQ. B(N-1)+TMP1) THEN
+               B(N-1) = ZERO
+            ENDIF
+            
          ELSE
-            TMP1 = A(N-1)*(TMP1/(TMP1+B(N-2)))
-         ENDIF
-
-         IF (TMP1 .EQ. B(N-1)+TMP1) THEN
-            B(N-1) = ZERO
-         ENDIF
-
-      ELSE
-
-         TMP1 = A(N)
-         IF (TMP1 .EQ. B(N-1)+TMP1) THEN
-            B(N-1) = ZERO
-            TMP1 = A(N-1)
-         ELSE
-            TMP1 = A(N-1)*(TMP1/(TMP1+B(N-1)))
-         ENDIF
-         
-         IF (TMP1 .EQ. B(N-2)+TMP1) THEN
-            B(N-2) = ZERO
-            TMP1 = A(N-2)
-         ELSE
-            TMP1 = A(N-2)*(TMP1/(TMP1+B(N-2)))
-         ENDIF
-         
-         M0 = M
-         DO J = N-3, M, -1
-            IF (TMP1 .EQ. B(J)+TMP1) THEN
-               B(J) = -ZERO
-               WORK2(INDRV6+J) = -ZERO
-               IF (M0 .EQ. M) M0 = J+1
-               TMP1 = A(J)
+            
+            TMP1 = A(N)
+            IF (TMP1 .EQ. B(N-1)+TMP1) THEN
+               B(N-1) = ZERO
+               TMP1 = A(N-1)
             ELSE
-               TMP1 = A(J)*(TMP1/(TMP1+B(J)))
+               TMP1 = A(N-1)*(TMP1/(TMP1+B(N-1)))
             ENDIF
-         ENDDO
-         M = M0
-         
+            
+            IF (TMP1 .EQ. B(N-2)+TMP1) THEN
+               B(N-2) = ZERO
+               TMP1 = A(N-2)
+            ELSE
+               TMP1 = A(N-2)*(TMP1/(TMP1+B(N-2)))
+            ENDIF
+            
+            M0 = M
+            DO J = N-3, M, -1
+               IF (TMP1 .EQ. B(J)+TMP1) THEN
+                  B(J) = -ZERO
+                  WORK2(INDRV6+J) = -ZERO
+                  IF (M0 .EQ. M) M0 = J+1
+                  TMP1 = A(J)
+               ELSE
+                  TMP1 = A(J)*(TMP1/(TMP1+B(J)))
+               ENDIF
+            ENDDO
+            M = M0
+
+         ENDIF
+            
       ENDIF
 *     
       B(N) = ZERO

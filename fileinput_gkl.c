@@ -12,21 +12,26 @@ int main(int argc, char *argv[]){
 
   int s,u,i,each, ii, j, m, n,tmp, w, L ,K, accuracy, lwork;
   double alpha;
-  char mode;
+  char mode,ls;
   int *IAP,*JA;
   double *A,*work;
 
+  FILE *fp;
   L=atoi(argv[1]);
-  accuracy = atoi(argv[3]);
+  accuracy = atoi(argv[4]);
   mode = argv[2][0];
+  ls = argv[3][0];
+  fp = fopen(argv[5],"r");
   if(mode=='d') printf("runnning: dense mode\n");
   else if(mode=='s') printf("runnning: sparse mode\n");
   else {printf("error: d[dense] か s[sparse] を指定して下さい。"); return 0;}
 
+  if(ls=='s') printf("runnning: smallest singularvalues ... \n");
+  if(ls=='l') printf("runnning: largest singularvalues ... \n");
   K=L*2;
-  scanf("%d",&m);
-  scanf("%d",&n);
-  scanf("%d",&w);
+  fscanf(fp,"%d",&m);
+  fscanf(fp,"%d",&n);
+  fscanf(fp,"%d",&w);
 
   printf("each row has %d elements.\n",w/m);
 
@@ -54,7 +59,7 @@ int main(int argc, char *argv[]){
     ii=0;
     IAP[0]=1;
     for(tmp=0;tmp<w;tmp++){
-    //while(scanf("%d %d %lf",&i,&j,&alpha) !=EOF){
+    //while(fscanf("%d %d %lf",&i,&j,&alpha) !=EOF){
       i = tmp / each;
       j = rand() % n;
       alpha = rand()/(double)RAND_MAX;
@@ -71,13 +76,13 @@ int main(int argc, char *argv[]){
   }
   else if(mode=='d'){
     tmp=0;
-    while(scanf("%lf",&alpha) !=EOF){
+    while(fp,fscanf("%lf",&alpha) !=EOF){
       A[tmp]=alpha;
       tmp++;
     }
   }
-
-  resgkl_main_(&mode,&accuracy,&m,&n,&L,&K,IAP,JA,A,work,&lwork);
+  fclose(fp);
+  resgkl_main_(&mode,&ls,&accuracy,&m,&n,&L,&K,IAP,JA,A,work,&lwork);
 
   return 0;
 }
