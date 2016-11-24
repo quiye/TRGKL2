@@ -76,7 +76,7 @@ int main(int argc, char *argv[]){
   }
   else if(mode=='d'){
     tmp=0;
-    while(fp,fscanf("%lf",&alpha) !=EOF){
+    while(fscanf(fp,"%lf",&alpha) !=EOF){
       A[tmp]=alpha;
       tmp++;
     }

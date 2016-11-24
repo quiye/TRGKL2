@@ -55,7 +55,6 @@ SUBROUTINE RESGKL(J,MODE,LS,IAP,JA,A,M,N,K,L,BK,VK,UK,VPLUS,INFO,SELEK,WORK,LWOR
      ! with lapack 1.0 QR
      !  WRITE(*,*) "GIVENS回転(DGEBRDG_LP1)+QR法(DBDSQRU)+両側(DGEMM)"
      CALL DGEBRDG_4_BISIDE(L+1,BK,K,Q,P)
-
      DO I = 1,K
         BD(I) = BK(I,I)
      END DO
@@ -64,12 +63,12 @@ SUBROUTINE RESGKL(J,MODE,LS,IAP,JA,A,M,N,K,L,BK,VK,UK,VPLUS,INFO,SELEK,WORK,LWOR
      END DO
      CALL DBDSQRU( 'U',K,K,K,0,BD,BE,P,K,Q,K,CDUMMY,K,WORK,IINFO )
      IF(LS == "s") then
-     DO I = 1, K/2
-        CALL DSWAP(K,Q(1,K+1-I),1,Q(1,I),1) !Q(1:K,I) = Q(1:K,K+1-I)
-     END DO
-     DO I = 1, K/2
-        CALL DSWAP(K,P(K+1-I,1),K,P(I,1),K) !P(I,1:K) = P(K+1-I,1:K)
-     END DO
+        DO I = 1, K/2
+           CALL DSWAP(K,Q(1,K+1-I),1,Q(1,I),1) !Q(1:K,I) = Q(1:K,K+1-I)
+        END DO
+        DO I = 1, K/2
+           CALL DSWAP(K,P(K+1-I,1),K,P(I,1),K) !P(I,1:K) = P(K+1-I,1:K)
+        END DO
      end if
      CALL DGEMM('N','N',M,L,K,ONE,UK,M,Q,K,ZERO,UM,M)
      CALL DCOPY(M*L,UM,1,UK,1)
@@ -78,13 +77,13 @@ SUBROUTINE RESGKL(J,MODE,LS,IAP,JA,A,M,N,K,L,BK,VK,UK,VPLUS,INFO,SELEK,WORK,LWOR
 
      BK = ZERO
      IF(LS == "s") then
-     DO I =1 ,L
-        BK(I,I) = BD(K-I+1)
-     END DO
+        DO I =1 ,L
+           BK(I,I) = BD(K-I+1)
+        END DO
      else
-     DO I =1 ,L
-        BK(I,I) = BD(I)
-     END DO
+        DO I =1 ,L
+           BK(I,I) = BD(I)
+        END DO
      end if
      CALL DAXPY(L,BETA,Q(K,1),K,BK(1,L+1),1)
 
@@ -104,9 +103,9 @@ SUBROUTINE RESGKL(J,MODE,LS,IAP,JA,A,M,N,K,L,BK,VK,UK,VPLUS,INFO,SELEK,WORK,LWOR
 
      CALL DBDSQRU('U',K,K,0,0,BD,BE,P,K,Q,K,CDUMMY,K,WORK,IINFO )
      IF(LS == "s") then
-     DO I = 1, K/2
-        CALL DSWAP(K,P(K+1-I,1),K,P(I,1),K) !P(I,1:K) = P(K+1-I,1:K)
-     END DO
+        DO I = 1, K/2
+           CALL DSWAP(K,P(K+1-I,1),K,P(I,1),K) !P(I,1:K) = P(K+1-I,1:K)
+        END DO
      end if
      P = TRANSPOSE(P)
      CALL DGEQRF(K,L,P,K,BD,WORK,LWORK,IINFO)
@@ -138,12 +137,12 @@ SUBROUTINE RESGKL(J,MODE,LS,IAP,JA,A,M,N,K,L,BK,VK,UK,VPLUS,INFO,SELEK,WORK,LWOR
      END DO
      CALL DOQDS1('L',K,BD,BE,P,K,Q,K,WORK,WORK2,INFO)
      IF(LS == "s") then
-     DO I = 1, K/2
-        CALL DSWAP(K,P(1,K+1-I),1,P(1,I),1) !P(1:K,I) = P(1:K,K+1-I)
-     END DO
-     DO I = 1, K/2
-        CALL DSWAP(K,Q(K+1-I,1),K,Q(I,1),K) !Q(I,1:K) = Q(K+1-I,1:K)
-     END DO
+        DO I = 1, K/2
+           CALL DSWAP(K,P(1,K+1-I),1,P(1,I),1) !P(1:K,I) = P(1:K,K+1-I)
+        END DO
+        DO I = 1, K/2
+           CALL DSWAP(K,Q(K+1-I,1),K,Q(I,1),K) !Q(I,1:K) = Q(K+1-I,1:K)
+        END DO
      end if
      CALL DGEMM('N','T',M,L,K,ONE,UK,M,Q,K,ZERO,UM,M)
      CALL DCOPY(M*L,UM,1,UK,1)
@@ -152,13 +151,13 @@ SUBROUTINE RESGKL(J,MODE,LS,IAP,JA,A,M,N,K,L,BK,VK,UK,VPLUS,INFO,SELEK,WORK,LWOR
 
      BK = ZERO
      IF(LS == "s") then
-     DO I =1 ,L
-        BK(I,I) = BD(K-I+1)
-     END DO
+        DO I =1 ,L
+           BK(I,I) = BD(K-I+1)
+        END DO
      else
-     DO I =1 ,L
-        BK(I,I) = BD(I)
-     END DO
+        DO I =1 ,L
+           BK(I,I) = BD(I)
+        END DO
      end if
      CALL DAXPY(L,BETA,Q(1,K),1,BK(1,L+1),1)
   
@@ -178,9 +177,9 @@ SUBROUTINE RESGKL(J,MODE,LS,IAP,JA,A,M,N,K,L,BK,VK,UK,VPLUS,INFO,SELEK,WORK,LWOR
 
      CALL DOQDS3('U',K,BD,BE,P,K,WORK,IINFO )
      IF(LS == "s") then
-     DO I = 1, K/2
-        CALL DSWAP(K,P(K+1-I,1),K,P(I,1),K) !P(I,1:K) = P(K+1-I,1:K)
-     END DO
+        DO I = 1, K/2
+           CALL DSWAP(K,P(K+1-I,1),K,P(I,1),K) !P(I,1:K) = P(K+1-I,1:K)
+        END DO
      end if
      P = TRANSPOSE(P)
      CALL DGEQRF(K,L,P,K,BD,WORK,LWORK,IINFO)
@@ -204,11 +203,6 @@ SUBROUTINE RESGKL(J,MODE,LS,IAP,JA,A,M,N,K,L,BK,VK,UK,VPLUS,INFO,SELEK,WORK,LWOR
 
      WORK(1) = ONE+TWO*DLAMCH('E')
      CALL DGESVJ('U','C','V',K,K,BK,K,BD,M,P,K,WORK,LWORK,IINFO)
-     IF ( NINT(WORK(2)) .LT. L ) THEN
-        INFO = 2
-        RETURN
-     END IF
-
      CALL DGEMM('N','N',N,L,K,ONE,VK,N,P,K,ZERO,VM,N)
      CALL DCOPY(N*L,VM,1,VK,1)
      CALL DGEMM('N','N',M,L,K,ONE,UK,M,BK,K,ZERO,UM,M)
