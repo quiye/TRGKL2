@@ -10,24 +10,32 @@
 
 int main(int argc, char *argv[]){
 
-  int s,u,i,each, ii, j, m, n,tmp, w, L ,K, accuracy, lwork;
+  int s,u,i,each, ii, j, m, n,tmp, w, L ,K, accuracy, lwork, matrixseed, initseed, method;
   double alpha;
   char mode,ls;
   int *IAP,*JA;
   double *A,*work;
 
   FILE *fp;
-  L=atoi(argv[1]);
-  accuracy = atoi(argv[4]);
-  mode = argv[2][0];
-  ls = argv[3][0];
-  fp = fopen(argv[5],"r");
+  method = atoi(argv[1]);//1=qr1,2=qr2,3=oqds1,4=oqds2
+  L=atoi(argv[2]);
+  accuracy = atoi(argv[5]);
+  mode = argv[3][0];
+  ls = argv[4][0];
+  matrixseed = atoi(argv[6]);
+  initseed = atoi(argv[7]);
+  fp = fopen(argv[8],"r");
   if(mode=='d') printf("runnning: dense mode\n");
   else if(mode=='s') printf("runnning: sparse mode\n");
   else {printf("error: d[dense] か s[sparse] を指定して下さい。"); return 0;}
 
   if(ls=='s') printf("runnning: smallest singularvalues ... \n");
   if(ls=='l') printf("runnning: largest singularvalues ... \n");
+  if(method==1) printf("runnning: 1...QR(biside singular vectors) ... \n");
+  if(method==2) printf("runnning: 2...QR(oneside singular vectors) ... \n");
+  if(method==3) printf("runnning: 3...OQDS(biside singular vectors) ... \n");
+  if(method==4) printf("runnning: 4...OQDS(oneside singular vectors) ... \n");
+
   K=L*2;
   fscanf(fp,"%d",&m);
   fscanf(fp,"%d",&n);
@@ -35,8 +43,7 @@ int main(int argc, char *argv[]){
 
   printf("each row has %d elements.\n",w/m);
 
-  s=7827187;
-  srand(s);
+  srand(matrixseed);
  
   IAP=(int *)malloc(sizeof(int)*(m+1));
   JA=(int *)malloc(sizeof(int)*w);
@@ -82,7 +89,7 @@ int main(int argc, char *argv[]){
     }
   }
   fclose(fp);
-  resgkl_main_(&mode,&ls,&accuracy,&m,&n,&L,&K,IAP,JA,A,work,&lwork);
+  resgkl_main_(&initseed,&method,&mode,&ls,&accuracy,&m,&n,&L,&K,IAP,JA,A,work,&lwork);
 
   return 0;
 }
