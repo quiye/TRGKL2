@@ -10,10 +10,12 @@
 
 int main(int argc, char *argv[]){
 
-  int s,u,i,each, ii, j, m, n,tmp, w, L ,K, accuracy, lwork, matrixseed, initseed, method;
-  double alpha;
+  int s,u,i,each, ii, j, m, n,tmp, w, L ,K, accuracy;
+  int lwork, matrixseed, initseed, method;
+  int maxthreads,k0,k1,t;
+  double alpha,n0,l0,l1;
   char mode,ls;
-  int *IAP,*JA;
+  int *IAP,*JA,*start_row;
   double *A,*work;
 
   FILE *fp;
@@ -55,11 +57,14 @@ int main(int argc, char *argv[]){
   if (K*K>lwork) lwork=K*K;
 
   work=(double *)malloc(sizeof(double)*lwork);
-
-  if(IAP==NULL || JA==NULL || A==NULL || work==NULL){
+  maxthreads=omp_get_max_threads();
+  start_row=(int *)malloc((maxthreads+1)*sizeof(int));
+  if(IAP==NULL || JA==NULL || A==NULL || work==NULL || start_row==NULL){
     printf("Out of memory.\n");
     return 0;
   }
+
+  n0 = (double)w/maxthreads;
 
   each = w / m;
   if(mode=='s'){
@@ -89,7 +94,40 @@ int main(int argc, char *argv[]){
     }
   }
   fclose(fp);
-  resgkl_main_(&initseed,&method,&mode,&ls,&accuracy,&m,&n,&L,&K,IAP,JA,A,work,&lwork);
+
+
+  for(t=0,i=0;i<maxthreads && t<m;i++){
+    start_row[i]=t;
+
+    k1=0;
+    while(k1<n0 && t<m){
+      k0=k1;
+      k1=k0+IAP[t+1]-IAP[t];
+      t=t+1;
+    }
+
+    if(start_row[i]+1==t){
+      continue;
+    }
+
+    l0=n0-k0;
+    l1=fabs(k1-n0);
+    if(l0<l1){
+      t=t-1;
+    }
+  }
+  start_row[i]=m;
+
+  if(i!=maxthreads){
+    for(i=i+1;i<maxthreads+1;i++){
+      start_row[i]=0;
+    }
+  }
+  for(i = 0;i<maxthreads+1;i++){
+  printf("start_row %d = %d\n",i,start_row[i]);
+  }
+  
+  resgkl_main_(start_row,&initseed,&method,&mode,&ls,&accuracy,&m,&n,&L,&K,IAP,JA,A,work,&lwork);
 
   return 0;
 }

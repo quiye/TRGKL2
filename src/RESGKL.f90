@@ -1,7 +1,8 @@
-SUBROUTINE RESGKL(J,MODE,LS,IAP,JA,A,M,N,K,L,BK,VK,UK,VPLUS,INFO,SELEK,WORK,LWORK)
+SUBROUTINE RESGKL(start_row,J,MODE,LS,IAP,JA,A,M,N,K,L,BK,VK,UK,VPLUS,INFO,SELEK,WORK,LWORK)
   IMPLICIT NONE
 
   INTEGER IAP(*), JA(*), LWORK
+  INTEGER start_row(*)
   DOUBLE PRECISION A(*), WORK(*)
   CHARACTER MODE,LS
 
@@ -17,7 +18,7 @@ SUBROUTINE RESGKL(J,MODE,LS,IAP,JA,A,M,N,K,L,BK,VK,UK,VPLUS,INFO,SELEK,WORK,LWOR
   VK(1:N,J+1) = VPLUS(1:N)
   DO WHILE(J < K)
      IF(MODE=='s') THEN
-        CALL av(M,IAP,JA,A, VK(1:N,J+1), UM(1:M,1))
+        CALL av(start_row,M,IAP,JA,A, VK(1:N,J+1), UM(1:M,1))
      ELSE IF(MODE=='d') THEN
         CALL DGEMV('N',M,N,ONE,A,M,VK(1:N,J+1),1,ZERO,UM(1:M,1),1)
      END IF
@@ -25,7 +26,7 @@ SUBROUTINE RESGKL(J,MODE,LS,IAP,JA,A,M,N,K,L,BK,VK,UK,VPLUS,INFO,SELEK,WORK,LWOR
      BK(J+1,J+1) = DNRM2(M,UM(1:M,1),1)
      UK(1:M,J+1) = UM(1:M,1) / BK(J+1,J+1)
      IF(MODE=='s') THEN
-        CALL atv(M,N,IAP,JA,A, UK(1:M,J+1), VPLUS)
+        CALL atv(start_row,M,N,IAP,JA,A, UK(1:M,J+1), VPLUS)
      ELSE IF(MODE=='d') THEN
         CALL DGEMV('T',M,N,ONE,A,M,UK(1:M,J+1),1,ZERO,VPLUS,1)
      END IF
@@ -263,33 +264,37 @@ SUBROUTINE RESGKL(J,MODE,LS,IAP,JA,A,M,N,K,L,BK,VK,UK,VPLUS,INFO,SELEK,WORK,LWOR
   RETURN
 END SUBROUTINE RESGKL
 
-subroutine av (M, IAP, JA ,A, P, AP)
+subroutine av (start_row,M, IAP, JA ,A, P, AP)
       
   IMPLICIT NONE
   include 'omp_lib.h'
   integer M
+  integer thr_num
+  INTEGER start_row(*)
   integer IAP(*),JA(*)
   double precision A(*),P(*),AP(*),zero
   parameter (zero=0.0d0)
   integer i,j
   
-  !$OMP PARALLEL DO PRIVATE(j)
-  do i=1,M
+  !$OMP PARALLEL PRIVATE(i,thr_num,j)
+  thr_num = omp_get_thread_num()
+  do i=start_row(thr_num+1)+1,start_row(thr_num+2)
      AP(i)=zero
      do j=IAP(i),IAP(i+1)-1
         AP(i)=AP(i)+(A(j))*P(JA(j))
      enddo
   enddo
-  !$OMP END PARALLEL DO
+  !$OMP END PARALLEL
   
   return
 end subroutine av
 
-subroutine atv (M, N, IAP, JA, A, Q, AQ)
+subroutine atv (start_row,M, N, IAP, JA, A, Q, AQ)
   
   IMPLICIT NONE
   include 'omp_lib.h'
-  integer M,N
+  INTEGER start_row(*)
+  integer M,N,thr_num
   integer IAP(*),JA(*)
   double precision A(*),Q(*),AQ(N),zero
   parameter (zero=0.0d0)
@@ -300,43 +305,18 @@ subroutine atv (M, N, IAP, JA, A, Q, AQ)
      AQ(i)=zero
   enddo
   
-  !$OMP PARALLEL DO PRIVATE(j) REDUCTION(+:AQ)
-  do i=1,M
+  !$OMP PARALLEL PRIVATE(i,thr_num,j) REDUCTION(+:AQ)
+  !!!!!$OMP PARALLEL DO PRIVATE(j) REDUCTION(+:AQ)
+  thr_num = omp_get_thread_num()
+  do i=start_row(thr_num+1)+1,start_row(thr_num+2)
+  !!!!!do i=1,M
      do j=IAP(i),IAP(i+1)-1
         AQ(JA(j))=AQ(JA(j))+(A(j))*Q(i)
      enddo
   enddo
-  !$OMP END PARALLEL DO
+  !$OMP END PARALLEL
+  !!!!$OMP END PARALLEL DO
   
   return
 end subroutine atv
 
-!SUBROUTINE CGS3(vntemp,V,n,j,WORK)
-!  IMPLICIT NONE
-!  include 'omp_lib.h'
-!  INTEGER n,j,i
-!  DOUBLE PRECISION  ONE, ZERO, MINUSONE
-!  PARAMETER ( ONE = 1.0D+0, ZERO=0.0D+0,MINUSONE = -1.0D+0 )
-!  DOUBLE PRECISION V(n,j),vntemp(n),tmp,WORK(n)
-!  do i=1,N
-!     WORK(i)=zero
-!  enddo
-!  !$OMP PARALLEL DO PRIVATE(tmp) REDUCTION(+:WORK)
-!  do i = 1,j
-!     CALL DDOT(n,V(1,i),1,vntemp,1,tmp)
-!     WORK =WORK+ tmp * V(1:n,i)
-!  end do
-!  !$OMP END PARALLEL DO
-!  vntemp = vntemp - WORK
-!  do i=1,N
-!     WORK(i)=zero
-!  enddo
-!  !$OMP PARALLEL DO PRIVATE(tmp) REDUCTION(+:WORK)
-!  do i = 1,j
-!     CALL DDOT(n,V(1,i),1,vntemp,1,tmp)
-!     WORK =WORK+ tmp * V(1:n,i)
-!  end do
-!  !$OMP END PARALLEL DO
-!  vntemp = vntemp - WORK
-!
-!END SUBROUTINE CGS3
