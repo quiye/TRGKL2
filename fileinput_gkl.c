@@ -67,30 +67,57 @@ int main(int argc, char *argv[]){
   n0 = (double)w/maxthreads;
 
   each = w / m;
-  if(mode=='s'){
-    ii=0;
-    IAP[0]=1;
-    for(tmp=0;tmp<w;tmp++){
-    //while(fscanf("%d %d %lf",&i,&j,&alpha) !=EOF){
-      i = tmp / each;
-      j = rand() % n;
-      alpha = rand()/(double)RAND_MAX;
-      //printf("%d %d %30.20f\n",i,j,alpha);
-      if(i!=ii){
-        IAP[ii+1]=tmp+1;
-        ii++;
+  
+  //入力内部生成ならtrueを,外部から取り込むならfalseを
+  if(1==0){
+    if(mode=='s'){
+      ii=0;
+      IAP[0]=1;
+      for(tmp=0;tmp<w;tmp++){
+      //while(fscanf("%d %d %lf",&i,&j,&alpha) !=EOF){
+        i = tmp / each;
+        j = rand() % n;
+        alpha = rand()/(double)RAND_MAX;
+        //printf("%d %d %30.20f\n",i,j,alpha);
+        if(i!=ii){
+          IAP[ii+1]=tmp+1;
+          ii++;
+        }
+        JA[tmp]=j+1;
+        A[tmp]=alpha;
+        //tmp++;
       }
-      JA[tmp]=j+1;
-      A[tmp]=alpha;
-      //tmp++;
+      IAP[ii+1]=tmp+1;
     }
-    IAP[ii+1]=tmp+1;
-  }
-  else if(mode=='d'){
-    tmp=0;
-    while(fscanf(fp,"%lf",&alpha) !=EOF){
-      A[tmp]=alpha;
-      tmp++;
+    else if(mode=='d'){
+      tmp=0;
+      while(fscanf(fp,"%lf",&alpha) !=EOF){
+        A[tmp]=alpha;
+        tmp++;
+      }
+    }
+  }else{//外部から入力データを得る
+    if(mode=='s'){
+      ii=0;
+      w=0;
+      IAP[0]=1;
+      while(fscanf(fp,"%d %d %lf",&i,&j,&alpha) !=EOF){
+        if(i!=ii){
+          IAP[ii+1]=w+1;
+          ii++;
+        }
+        JA[w]=j+1;
+        A[w]=alpha;
+        w++;
+      }
+      IAP[ii+1]=w+1;
+    }
+    else if(mode=='d'){
+      w=0;
+      while(fscanf(fp,"%lf",&alpha) !=EOF){
+        A[w]=alpha;
+        w++;
+      }
     }
   }
   fclose(fp);
