@@ -51,7 +51,7 @@ SUBROUTINE RESGKL(ti,start_row,J,MODE,LS,IAP,JA,A,M,N,K,L,BK,VK,UK,VPLUS,INFO,SE
   DO I = 1,K
      P(I,I) = ONE
   END DO
-  print *,ti
+
   IF (SELEK == 1) THEN
      ! with lapack 1.0 QR
      !  WRITE(*,*) "GIVENS回転(DGEBRDG_LP1)+QR法(DBDSQRU)+両側(DGEMM)"
