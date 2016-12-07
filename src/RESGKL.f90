@@ -1,4 +1,4 @@
-SUBROUTINE RESGKL(start_row,J,MODE,LS,IAP,JA,A,M,N,K,L,BK,VK,UK,VPLUS,INFO,SELEK,WORK,LWORK)
+SUBROUTINE RESGKL(ti,start_row,J,MODE,LS,IAP,JA,A,M,N,K,L,BK,VK,UK,VPLUS,INFO,SELEK,WORK,LWORK)
   IMPLICIT NONE
 
   INTEGER IAP(*), JA(*), LWORK
@@ -13,12 +13,12 @@ SUBROUTINE RESGKL(start_row,J,MODE,LS,IAP,JA,A,M,N,K,L,BK,VK,UK,VPLUS,INFO,SELEK
   DOUBLE PRECISION BK(K,K),CPBK(K,K),VK(N,K),UK(M,K),VPLUS(N),BD(K),BE(K)
   DOUBLE PRECISION VM(N,L),UM(M,L),WORK2(K*8)
   DOUBLE PRECISION Q(K,K),P(K,K)
-  DOUBLE PRECISION DNRM2,DLAMCH
+  DOUBLE PRECISION DNRM2,DLAMCH,ti
 
   VK(1:N,J+1) = VPLUS(1:N)
   DO WHILE(J < K)
      IF(MODE=='s') THEN
-        CALL av(start_row,M,IAP,JA,A, VK(1:N,J+1), UM(1:M,1))
+        CALL av(ti,start_row,IAP,JA,A, VK(1:N,J+1), UM(1:M,1))
      ELSE IF(MODE=='d') THEN
         CALL DGEMV('N',M,N,ONE,A,M,VK(1:N,J+1),1,ZERO,UM(1:M,1),1)
      END IF
@@ -26,7 +26,7 @@ SUBROUTINE RESGKL(start_row,J,MODE,LS,IAP,JA,A,M,N,K,L,BK,VK,UK,VPLUS,INFO,SELEK
      BK(J+1,J+1) = DNRM2(M,UM(1:M,1),1)
      UK(1:M,J+1) = UM(1:M,1) / BK(J+1,J+1)
      IF(MODE=='s') THEN
-        CALL atv(start_row,M,N,IAP,JA,A, UK(1:M,J+1), VPLUS)
+        CALL atv(ti,start_row,N,IAP,JA,A, UK(1:M,J+1), VPLUS)
      ELSE IF(MODE=='d') THEN
         CALL DGEMV('T',M,N,ONE,A,M,UK(1:M,J+1),1,ZERO,VPLUS,1)
      END IF
@@ -51,7 +51,7 @@ SUBROUTINE RESGKL(start_row,J,MODE,LS,IAP,JA,A,M,N,K,L,BK,VK,UK,VPLUS,INFO,SELEK
   DO I = 1,K
      P(I,I) = ONE
   END DO
-
+  print *,ti
   IF (SELEK == 1) THEN
      ! with lapack 1.0 QR
      !  WRITE(*,*) "GIVENS回転(DGEBRDG_LP1)+QR法(DBDSQRU)+両側(DGEMM)"
@@ -264,18 +264,17 @@ SUBROUTINE RESGKL(start_row,J,MODE,LS,IAP,JA,A,M,N,K,L,BK,VK,UK,VPLUS,INFO,SELEK
   RETURN
 END SUBROUTINE RESGKL
 
-subroutine av (start_row,M, IAP, JA ,A, P, AP)
+subroutine av (ti,start_row, IAP, JA ,A, P, AP)
       
   IMPLICIT NONE
   include 'omp_lib.h'
-  integer M
   integer thr_num
   INTEGER start_row(*)
   integer IAP(*),JA(*)
-  double precision A(*),P(*),AP(*),zero
+  double precision A(*),P(*),AP(*),zero,timee,ti
   parameter (zero=0.0d0)
   integer i,j
-  
+  timee = omp_get_wtime() 
   !$OMP PARALLEL PRIVATE(i,thr_num,j)
   thr_num = omp_get_thread_num()
   do i=start_row(thr_num+1)+1,start_row(thr_num+2)
@@ -285,38 +284,36 @@ subroutine av (start_row,M, IAP, JA ,A, P, AP)
      enddo
   enddo
   !$OMP END PARALLEL
-  
+  ti = ti + omp_get_wtime()-timee 
   return
 end subroutine av
 
-subroutine atv (start_row,M, N, IAP, JA, A, Q, AQ)
+subroutine atv (ti,start_row, N, IAP, JA, A, Q, AQ)
   
   IMPLICIT NONE
   include 'omp_lib.h'
   INTEGER start_row(*)
-  integer M,N,thr_num
+  integer N,thr_num
   integer IAP(*),JA(*)
-  double precision A(*),Q(*),AQ(N),zero
+  double precision A(*),Q(*),AQ(N),ti,zero,timee
   parameter (zero=0.0d0)
   
   integer i,j
+  timee = omp_get_wtime() 
   
   do i=1,N
      AQ(i)=zero
   enddo
   
   !$OMP PARALLEL PRIVATE(i,thr_num,j) REDUCTION(+:AQ)
-  !!!!!$OMP PARALLEL DO PRIVATE(j) REDUCTION(+:AQ)
   thr_num = omp_get_thread_num()
   do i=start_row(thr_num+1)+1,start_row(thr_num+2)
-  !!!!!do i=1,M
      do j=IAP(i),IAP(i+1)-1
         AQ(JA(j))=AQ(JA(j))+(A(j))*Q(i)
      enddo
   enddo
   !$OMP END PARALLEL
-  !!!!$OMP END PARALLEL DO
-  
+  ti = ti + omp_get_wtime()-timee 
   return
 end subroutine atv
 

@@ -7,7 +7,7 @@
 #define TWO (2.0)
 #define ONE (1.0)
 #define ZERO (0.0)
-
+//double omp_get_max_threads(void);
 int main(int argc, char *argv[]){
 
   int s,u,i,each, ii, j, m, n,tmp, w, L ,K, accuracy;
@@ -69,7 +69,7 @@ int main(int argc, char *argv[]){
   each = w / m;
   
   //入力内部生成ならtrueを,外部から取り込むならfalseを
-  if(1==0){
+  if(1==1){
     if(mode=='s'){
       ii=0;
       IAP[0]=1;

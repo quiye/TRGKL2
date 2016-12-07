@@ -6,11 +6,12 @@ DOUBLE PRECISION FUNCTION ERR(start_row,mode,IAP,JA,A,M,N,K,L,BK,VK,UK,VTEMP)
   INTEGER start_row(*)
   DOUBLE PRECISION ONE,ZERO,DNRM2
   PARAMETER(ONE = 1.0D+0,ZERO = 0.0D+0)
-  DOUBLE PRECISION A(*),BK(K,K),VK(N,K),UK(M,K),VTEMP(*)
+  DOUBLE PRECISION A(*),BK(K,K),VK(N,K),UK(M,K),VTEMP(*),hoge
   ERR = ZERO
+  hoge=zero
   DO I = 1, L
      IF(MODE=='s') THEN
-        CALL AV(start_row,M,IAP,JA,A,VK(:,I), VTEMP)
+        CALL AV(hoge,start_row,IAP,JA,A,VK(:,I), VTEMP)
      ELSE IF(MODE=='d') THEN
         CALL DGEMV('N',M,N,ONE,A,M,VK(:,I),1,ZERO,VTEMP,1)
      END IF
@@ -18,7 +19,7 @@ DOUBLE PRECISION FUNCTION ERR(start_row,mode,IAP,JA,A,M,N,K,L,BK,VK,UK,VTEMP)
      ERR = ERR + DNRM2(M,VTEMP,1) / SQRT(DBLE(M))
 
      IF(MODE=='s') THEN
-        CALL ATV(start_row,M,N,IAP,JA,A,UK(:,I), VTEMP)
+        CALL ATV(hoge,start_row,N,IAP,JA,A,UK(:,I), VTEMP)
      ELSE IF(MODE=='d') THEN
         CALL DGEMV('T',M,N,ONE,A,M,UK(:,I),1,ZERO,VTEMP,1)
      END IF
