@@ -59,7 +59,7 @@ SUBROUTINE RESGKL_MAIN(start_row,ini,mtd,MODE,LS,ACCURACY,M,N,L,K,IAP,JA,A,WORK,
         WRITE(*,*) W,"TIME", SELEK,ITR,(TMPT-STARTT),TMP_ERR,"AVE",TAVE,"MAX",TMAX
         WRITE(*,*) "MATRIX VECTOR COMPUTATION (sec)",ti
         
-        DO I = 1,3
+        DO I = 1,l
            WRITE (*,*) "SingularValue(1-3)",I, BK(I,I)
         END DO
      !END DO

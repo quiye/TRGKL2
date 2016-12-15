@@ -69,7 +69,7 @@ int main(int argc, char *argv[]){
   each = w / m;
   
   //入力内部生成ならtrueを,外部から取り込むならfalseを
-  if(1==1){
+  if(0){
     if(mode=='s'){
       ii=0;
       IAP[0]=1;

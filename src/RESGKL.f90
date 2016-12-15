@@ -297,7 +297,6 @@ subroutine atv (ti,start_row, N, IAP, JA, A, Q, AQ)
   integer IAP(*),JA(*)
   double precision A(*),Q(*),AQ(N),ti,zero,timee
   parameter (zero=0.0d0)
-  
   integer i,j
   timee = omp_get_wtime() 
   
