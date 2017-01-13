@@ -2,7 +2,7 @@ DOUBLE PRECISION FUNCTION ERR(start_row,mode,IAP,JA,A,M,N,K,L,BK,VK,UK,VTEMP,err
   IMPLICIT NONE
   CHARACTER MODE
   INTEGER M,N,K,L,I
-  INTEGER IAP(*),JA(*)
+  INTEGER IAP(*),JA(*),dummy
   INTEGER start_row(*)
   DOUBLE PRECISION ONE,ZERO,DNRM2,TMP,DDOT
   PARAMETER(ONE = 1.0D+0,ZERO = 0.0D+0)
@@ -10,11 +10,12 @@ DOUBLE PRECISION FUNCTION ERR(start_row,mode,IAP,JA,A,M,N,K,L,BK,VK,UK,VTEMP,err
   errmax = ZERO
   ERR = ZERO
   hoge = ZERO
+  dummy = 0
   DO I = 1, L
      TMP = ZERO
 
      IF(MODE=='s') THEN
-        CALL AV(hoge,start_row,IAP,JA,A,VK(:,I), VTEMP)
+        CALL AV(dummy,hoge,start_row,IAP,JA,A,VK(:,I), VTEMP)
      ELSE IF(MODE=='d') THEN
         CALL DGEMV('N',M,N,ONE,A,M,VK(:,I),1,ZERO,VTEMP,1)
      END IF
@@ -22,7 +23,7 @@ DOUBLE PRECISION FUNCTION ERR(start_row,mode,IAP,JA,A,M,N,K,L,BK,VK,UK,VTEMP,err
      TMP = TMP + DDOT(M,VTEMP,1,VTEMP,1)
 
      IF(MODE=='s') THEN
-        CALL ATV(hoge,start_row,N,IAP,JA,A,UK(:,I), VTEMP)
+        CALL ATV(dummy,hoge,start_row,N,IAP,JA,A,UK(:,I), VTEMP)
      ELSE IF(MODE=='d') THEN
         CALL DGEMV('T',M,N,ONE,A,M,UK(:,I),1,ZERO,VTEMP,1)
      END IF
@@ -32,7 +33,7 @@ DOUBLE PRECISION FUNCTION ERR(start_row,mode,IAP,JA,A,M,N,K,L,BK,VK,UK,VTEMP,err
      TMP=SQRT(TMP/2.0D+0)
      errmax = max(errmax,tmp)
      ERR = ERR + TMP / DBLE(L)
-     print *,TMP
+     print *,I,TMP
   ENDDO
   RETURN
 END FUNCTION ERR

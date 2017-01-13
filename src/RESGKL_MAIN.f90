@@ -7,7 +7,7 @@ SUBROUTINE RESGKL_MAIN(start_row,ini,mtd,MODE,LS,ACCURACY,M,N,L,K,IAP,JA,A,WORK,
   DOUBLE PRECISION MIN_ERR,TMP_ERR,TAVE,STARTT,TMPT,MINT,CONST,ZERO,MINUSONE,TEN,ERR,DNRM2,TMAX,ti
   PARAMETER (ZERO = 0.0D+0,MINUSONE = -1.0D+0,TEN = 10.0D+0)
   INTEGER ISEED(4), IAP(*), JA(*),ini,mtd,start_row(*)
-  INTEGER M,N,L,K,INFO,COU,SELEK,ACCURACY,I,W,ITR,LWORK
+  INTEGER M,N,L,K,INFO,COU,SELEK,ACCURACY,I,W,ITR,LWORK,opcount
 
   ISEED( 1 ) = ini
   ISEED( 2 ) = 402+ini*13
@@ -23,6 +23,7 @@ SUBROUTINE RESGKL_MAIN(start_row,ini,mtd,MODE,LS,ACCURACY,M,N,L,K,IAP,JA,A,WORK,
   end if
   DO W = 1,1
      ti = ZERO
+     opcount = 0
      CALL DLARNV(1,ISEED,N,VPLUS_ORIG)
      VPLUS_ORIG = VPLUS_ORIG / DNRM2(N,VPLUS_ORIG,1)
 
@@ -38,8 +39,8 @@ SUBROUTINE RESGKL_MAIN(start_row,ini,mtd,MODE,LS,ACCURACY,M,N,L,K,IAP,JA,A,WORK,
         ITR = 0
         I = 0
         VPLUS = VPLUS_ORIG
-        DO WHILE (COU < 5000)
-           CALL RESGKL(ti,start_row,I,mode,LS,IAP,JA,A,M,N,K,L,BK,VK,UK,VPLUS,INFO,SELEK,WORK,LWORK)
+        DO WHILE (COU < 1500000)
+           CALL RESGKL(opcount,ti,start_row,I,mode,LS,IAP,JA,A,M,N,K,L,BK,VK,UK,VPLUS,INFO,SELEK,WORK,LWORK)
            TMP_ERR = MAXVAL(ABS(BK(1:L,L+1)))
 
            ITR = ITR+1
@@ -58,6 +59,7 @@ SUBROUTINE RESGKL_MAIN(start_row,ini,mtd,MODE,LS,ACCURACY,M,N,L,K,IAP,JA,A,WORK,
         TAVE = ERR(start_row,mode,IAP,JA,A,M,N,K,L,BK,VK,UK,WORK,TMAX)
         WRITE(*,*) W,"TIME", SELEK,ITR,(TMPT-STARTT),TMP_ERR,"AVE",TAVE,"MAX",TMAX
         WRITE(*,*) "MATRIX VECTOR COMPUTATION (sec)",ti
+        WRITE(*,*) "Total number of OP*x operations  :",opcount
         
         DO I = 1,l
            WRITE (*,*) "SingularValue(1-3)",I, BK(I,I)

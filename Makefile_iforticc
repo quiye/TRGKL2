@@ -1,8 +1,8 @@
 CC=icc
 FC=ifort
 
-CCFLAG=-fp-model precise -O3 -ipo -xCORE-AVX2  -mcmodel=medium -shared-intel -Wall -qopenmp
-FCFLAG=-fp-model precise -O3 -ipo -xCORE-AVX2  -mcmodel=medium -shared-intel -qopenmp
+CCFLAG=-fp-model precise -O3 -ipo -xHOST  -mcmodel=medium -shared-intel -Wall -qopenmp
+FCFLAG=-fp-model precise -O3 -ipo -xHOST  -mcmodel=medium -shared-intel -qopenmp
 
 LIB=-mkl -L/opt/intel/lib/intel64 -lifcore -lifcore_pic -lifcoremt -lifport -lchkpwrap -qopenmp
 
@@ -12,7 +12,7 @@ all: clean dbdsqru.o CGS2.o  DGEBRDG_4_BISIDE.o  DGEBRDG_LP1.o  ERR.o  RESGKL.o 
 	${FC} ${FCFLAG} -c -o lib/$@ $<
 
 %.o: src/%.f90
-	${FC} ${FCFLAG} -c -o src/$@ $< ${LIB}
+	${FC} ${FCFLAG} -c -o src/$@ $<
 
 dfma0.o:
 	${CC} ${CCFLAG} -c -o lib/dfma0.o lib/dfma0.c
