@@ -175,14 +175,21 @@ SUBROUTINE RESGKL(opcount,ti,start_row,J,MODE,LS,IAP,JA,A,M,N,K,L,BK,VK,UK,VPLUS
      DO I = 1,K-1
         BE(I) = BK(I,I+1)
      END DO
-
-     CALL DOQDS3('U',K,BD,BE,P,K,WORK,IINFO )
+     
+     P = TRANSPOSE(P)
+     !CALL DOQDS3('U',K,BD,BE,P,K,WORK,IINFO )
+     CALL DOQDS2('L',K,BD,BE,P,K,WORK,WORK2,IINFO)
      IF(LS == "s") then
         DO I = 1, K/2
-           CALL DSWAP(K,P(K+1-I,1),K,P(I,1),K) !P(I,1:K) = P(K+1-I,1:K)
+           CALL DSWAP(K,P(1,K+1-I),1,P(1,I),1) !P(1:K,I) = P(1:K,K+1-I)
         END DO
      end if
-     P = TRANSPOSE(P)
+!     IF(LS == "s") then
+!        DO I = 1, K/2
+!           CALL DSWAP(K,P(K+1-I,1),K,P(I,1),K) !P(I,1:K) = P(K+1-I,1:K)
+!        END DO
+!     end if
+     !P = TRANSPOSE(P)
      CALL DGEQRF(K,L,P,K,BD,WORK,LWORK,IINFO)
      CALL DORMQR('R','N',K,K,L,P,K,BD,CPBK,K,WORK,LWORK,IINFO )
      CALL DORMQR('R','N',N,K,L,P,K,BD,VK,N,WORK,LWORK,IINFO )
@@ -273,7 +280,7 @@ subroutine av (opcount,ti,start_row, IAP, JA ,A, P, AP)
   integer IAP(*),JA(*)
   double precision A(*),P(*),AP(*),zero,timee,ti
   parameter (zero=0.0d0)
-  integer i,j
+  INTEGER*8 i,j
   timee = omp_get_wtime() 
   !$OMP PARALLEL PRIVATE(i,thr_num,j)
   thr_num = omp_get_thread_num()
@@ -298,7 +305,7 @@ subroutine atv (opcount,ti,start_row, N, IAP, JA, A, Q, AQ)
   integer IAP(*),JA(*)
   double precision A(*),Q(*),AQ(N),ti,zero,timee
   parameter (zero=0.0d0)
-  integer i,j
+  INTEGER*8 i,j
   timee = omp_get_wtime() 
   
   do i=1,N

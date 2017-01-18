@@ -10,8 +10,9 @@
 //double omp_get_max_threads(void);
 int main(int argc, char *argv[]){
 
-  int s,u,i,each, ii, j, m, n,tmp, w, L ,K, accuracy;
-  int lwork, matrixseed, initseed, method;
+  int s,u,each,  j, L ,K, accuracy;
+  long long int m,n,w,lwork,tmp,i,ii;
+  int matrixseed, initseed, method;
   int maxthreads,k0,k1,t;
   double alpha,n0,l0,l1;
   char mode,ls;
@@ -39,14 +40,14 @@ int main(int argc, char *argv[]){
   if(method==4) printf("runnning: 4...OQDS(oneside singular vectors) ... \n");
 
   K=L*2;
-  fscanf(fp,"%d",&m);
-  fscanf(fp,"%d",&n);
-  fscanf(fp,"%d",&w);
+  fscanf(fp,"%ld",&m);
+  fscanf(fp,"%ld",&n);
+  fscanf(fp,"%ld",&w);
 
   printf("each row has %d elements.\n",w/m);
 
   srand(matrixseed);
- 
+
   IAP=(int *)malloc(sizeof(int)*(m+1));
   JA=(int *)malloc(sizeof(int)*w);
   A=(double *)malloc(sizeof(double)*w);
