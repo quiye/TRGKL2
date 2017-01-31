@@ -1,12 +1,14 @@
 CC=icc
 FC=ifort
 
-CCFLAG=-fp-model precise -O3 -ipo -xHOST  -mcmodel=medium -shared-intel -Wall -qopenmp
-FCFLAG=-fp-model precise -O3 -ipo -xHOST  -mcmodel=medium -shared-intel -qopenmp
+#CCFLAG=-fp-model precise -O3 -ipo -xHOST  -mcmodel=medium -shared-intel -Wall -qopenmp
+CCFLAG=-fp-model precise -O3 -ipo -xHOST -shared-intel -Wall -qopenmp
+#FCFLAG=-fp-model precise -O3 -ipo -xHOST  -mcmodel=medium -shared-intel -qopenmp
+FCFLAG=-fp-model precise -O3 -ipo -xHOST  -shared-intel -qopenmp
 
-LIB=-mkl -L/opt/intel/lib/intel64 -lifcore -lifcore_pic -lifcoremt -lifport -lchkpwrap -qopenmp
+LIB=-mkl -static -L/opt/intel/lib/intel64 -lifcore -lifcore_pic -lifcoremt -lifport -lchkpwrap -qopenmp
 
-all: clean dbdsqru.o CGS2.o  DGEBRDG_4_BISIDE.o  DGEBRDG_LP1.o  ERR.o  RESGKL.o doqds1.o doqds2.o dlartg6.o dlartg7.o dfma0.o RESGKL_MAIN.o fileinput_gkl
+all: clean dbdsqru.o CGS2.o  DGEBRDG_4_BISIDE.o  DGEBRDG_LP1.o  ERR.o  RESGKL.o doqds1.o doqds2.o dlartg2.o dlartg6.o dlartg7.o dfma0.o RESGKL_MAIN.o fileinput_gkl
 
 %.o: lib/%.f
 	${FC} ${FCFLAG} -c -o lib/$@ $<
@@ -18,7 +20,7 @@ dfma0.o:
 	${CC} ${CCFLAG} -c -o lib/dfma0.o lib/dfma0.c
 
 fileinput_gkl:
-	${CC} ${CCFLAG} -std=c99 -o fileinput_gkl fileinput_gkl.c lib/dbdsqru.o src/CGS2.o  src/DGEBRDG_4_BISIDE.o  src/DGEBRDG_LP1.o  src/ERR.o  src/RESGKL.o lib/doqds1.o lib/doqds2.o lib/dlartg6.o lib/dlartg7.o lib/dfma0.o src/RESGKL_MAIN.o ${LIB}
+	${CC} ${CCFLAG} -std=c99 -o fileinput_gkl fileinput_gkl.c lib/dbdsqru.o src/CGS2.o  src/DGEBRDG_4_BISIDE.o  src/DGEBRDG_LP1.o  src/ERR.o  src/RESGKL.o lib/doqds1.o lib/doqds2.o lib/dlartg2.o lib/dlartg6.o lib/dlartg7.o lib/dfma0.o src/RESGKL_MAIN.o ${LIB}
 
 clean:
 	rm -rf src/*.o lib/*.o fileinput_gkl

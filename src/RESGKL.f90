@@ -14,6 +14,8 @@ SUBROUTINE RESGKL(opcount,ti,start_row,J,MODE,LS,IAP,JA,A,M,N,K,L,BK,VK,UK,VPLUS
   DOUBLE PRECISION VM(N,L),UM(M,L),WORK2(K*8)
   DOUBLE PRECISION Q(K,K),P(K,K)
   DOUBLE PRECISION DNRM2,DLAMCH,ti
+  DOUBLE PRECISION TESTMAT(L,L),IDEN(L,L),oerr
+  INTEGER II
 
   VK(1:N,J+1) = VPLUS(1:N)
   DO WHILE(J < K)
@@ -87,6 +89,32 @@ SUBROUTINE RESGKL(opcount,ti,start_row,J,MODE,LS,IAP,JA,A,M,N,K,L,BK,VK,UK,VPLUS
         END DO
      end if
      CALL DAXPY(L,BETA,Q(K,1),K,BK(1,L+1),1)
+        !orthogonal test{
+        IDEN = ZERO
+        oerr = zero
+        DO I=1,l
+           IDEN(I,I)=ONE
+        END DO
+        CALL DGEMM('N','T',l,l,K,ONE,P,K,P,K,MINUSONE,IDEN,L)
+        do i=1,l
+          do ii=1,l
+            oerr = oerr + IDEN(i,ii)**2
+          end do
+        end do
+        WRITE(*,*) "QR:oerr P",sqrt(oerr)
+        IDEN = ZERO
+        oerr = zero
+        DO I=1,l
+           IDEN(I,I)=ONE
+        END DO
+        CALL DGEMM('T','N',l,l,K,ONE,Q,K,Q,K,MINUSONE,IDEN,L)
+        do i=1,l
+        do ii=1,l
+        oerr = oerr + IDEN(i,ii)**2
+        end do
+        end do
+        WRITE(*,*) "QR:oerr Q",sqrt(oerr)
+        !}orthogonal test
 
   ELSE IF ( SELEK==2 ) THEN
      ! with lapack 1.0 QR
@@ -145,6 +173,32 @@ SUBROUTINE RESGKL(opcount,ti,start_row,J,MODE,LS,IAP,JA,A,M,N,K,L,BK,VK,UK,VPLUS
            CALL DSWAP(K,Q(K+1-I,1),K,Q(I,1),K) !Q(I,1:K) = Q(K+1-I,1:K)
         END DO
      end if
+        !orthogonal test{
+        IDEN = ZERO
+        oerr = zero
+        DO I=1,l
+           IDEN(I,I)=ONE
+        END DO
+        CALL DGEMM('T','N',l,l,K,ONE,P,K,P,K,MINUSONE,IDEN,L)
+        do i=1,l
+          do ii=1,l
+            oerr = oerr + IDEN(i,ii)**2
+          end do
+        end do
+        WRITE(*,*) "QR:oerr P",sqrt(oerr)
+        IDEN = ZERO
+        oerr = zero
+        DO I=1,l
+           IDEN(I,I)=ONE
+        END DO
+        CALL DGEMM('N','T',l,l,K,ONE,Q,K,Q,K,MINUSONE,IDEN,L)
+        do i=1,l
+        do ii=1,l
+        oerr = oerr + IDEN(i,ii)**2
+        end do
+        end do
+        WRITE(*,*) "QR:oerr Q",sqrt(oerr)
+        !}orthogonal test
      CALL DGEMM('N','T',M,L,K,ONE,UK,M,Q,K,ZERO,UM,M)
      CALL DCOPY(M*L,UM,1,UK,1)
      CALL DGEMM('N','N',N,L,K,ONE,VK,N,P,K,ZERO,VM,N)

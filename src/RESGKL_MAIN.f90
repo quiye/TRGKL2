@@ -4,9 +4,10 @@ SUBROUTINE RESGKL_MAIN(start_row,ini,mtd,MODE,LS,ACCURACY,M,N,L,K,IAP,JA,A,WORK,
 
   CHARACTER MODE,LS
   DOUBLE PRECISION A(*),WORK(*),BK(K,K),VK(N,K),UK(M,K),VPLUS(N),VPLUS_ORIG(N)
+  DOUBLE PRECISION IDEN(l,l),oerr
   DOUBLE PRECISION MIN_ERR,TMP_ERR,TAVE,STARTT,TMPT,MINT,CONST,ZERO,MINUSONE,TEN,ERR,DNRM2,TMAX,ti
   PARAMETER (ZERO = 0.0D+0,MINUSONE = -1.0D+0,TEN = 10.0D+0)
-  INTEGER ISEED(4), IAP(*), JA(*),ini,mtd,start_row(*)
+  INTEGER ISEED(4), IAP(*), JA(*),ini,mtd,start_row(*),j
   INTEGER M,N,L,K,INFO,COU,SELEK,ACCURACY,I,W,ITR,LWORK,opcount
 
   ISEED( 1 ) = ini
@@ -57,6 +58,33 @@ SUBROUTINE RESGKL_MAIN(start_row,ini,mtd,MODE,LS,ACCURACY,M,N,L,K,IAP,JA,A,WORK,
         END DO
 
         TAVE = ERR(start_row,mode,IAP,JA,A,M,N,K,L,BK,VK,UK,WORK,TMAX)
+
+        !orthogonal test{
+        IDEN = ZERO
+        oerr = zero
+        DO I=1,l
+           IDEN(I,I)=-MINUSONE
+        END DO
+        CALL DGEMM('T','N',l,l,N,-MINUSONE,VK,N,VK,N,MINUSONE,IDEN,L)
+        do i=1,l
+        do j=1,l
+        oerr = oerr + IDEN(i,j)**2
+        end do
+        end do
+        WRITE(*,*) "oerr VK",sqrt(oerr)
+        IDEN = ZERO
+        oerr = zero
+        DO I=1,l
+           IDEN(I,I)=-MINUSONE
+        END DO
+        CALL DGEMM('T','N',l,l,M,-MINUSONE,UK,M,UK,M,MINUSONE,IDEN,L)
+        do i=1,l
+        do j=1,l
+        oerr = oerr + IDEN(i,j)**2
+        end do
+        end do
+        WRITE(*,*) "oerr UK",sqrt(oerr)
+        !}orthogonal test
         WRITE(*,*) W,"TIME", SELEK,ITR,(TMPT-STARTT),TMP_ERR,"AVE",TAVE,"MAX",TMAX
         WRITE(*,*) "MATRIX VECTOR COMPUTATION (sec)",ti
         WRITE(*,*) "Total number of OP*x operations  :",opcount

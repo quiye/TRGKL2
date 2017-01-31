@@ -71,7 +71,7 @@ int main(int argc, char *argv[]){
   
   //入力内部生成なら1を,
   //外部から取り込むなら0を
-  if(1){
+  if(0){
     if(mode=='s'){
       ii=0;
       IAP[0]=1;

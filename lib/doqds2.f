@@ -69,7 +69,7 @@
             B(N0-J)=TMP1
             CALL DSWAP(N0,SU(1,J),1,SU(1,N0+1-J),1)
          ENDDO
-*     
+            
       ELSE
 *     
          DO I = 1, N0-1
@@ -104,10 +104,10 @@
       IF (N-M+1 .GE. 3) THEN
 
          IF (A(M) .GE. A(N)) THEN
-
+         
             TMP1 = A(M)
             DO J = M, N-3
-               IF (TMP1 .EQ. B(J)+TMP1) THEN
+               IF (B(J) .LE. TOL*TMP1) THEN
                   B(J) = -ZERO
                   WORK2(INDRV6+J) = -ZERO
                   M = J+1
@@ -117,28 +117,28 @@
                ENDIF
             ENDDO
             
-            IF (TMP1 .EQ. B(N-2)+TMP1) THEN
+            IF (B(N-2) .LE. TOL*TMP1) THEN
                B(N-2) = ZERO
                TMP1 = A(N-1)
             ELSE
                TMP1 = A(N-1)*(TMP1/(TMP1+B(N-2)))
             ENDIF
             
-            IF (TMP1 .EQ. B(N-1)+TMP1) THEN
+            IF (B(N-1) .LE. TOL*TMP1) THEN
                B(N-1) = ZERO
             ENDIF
             
          ELSE
             
             TMP1 = A(N)
-            IF (TMP1 .EQ. B(N-1)+TMP1) THEN
+            IF (B(N-1) .LE. TOL*TMP1) THEN
                B(N-1) = ZERO
                TMP1 = A(N-1)
             ELSE
                TMP1 = A(N-1)*(TMP1/(TMP1+B(N-1)))
             ENDIF
             
-            IF (TMP1 .EQ. B(N-2)+TMP1) THEN
+            IF (B(N-2) .LE. TOL*TMP1) THEN
                B(N-2) = ZERO
                TMP1 = A(N-2)
             ELSE
@@ -147,7 +147,7 @@
             
             M0 = M
             DO J = N-3, M, -1
-               IF (TMP1 .EQ. B(J)+TMP1) THEN
+               IF (B(J) .LE. TOL*TMP1) THEN
                   B(J) = -ZERO
                   WORK2(INDRV6+J) = -ZERO
                   IF (M0 .EQ. M) M0 = J+1
@@ -159,7 +159,7 @@
             M = M0
 
          ENDIF
-
+            
       ENDIF
 *     
       B(N) = ZERO
@@ -168,7 +168,7 @@
  3000 SIGMA = -B(N)
       SIGMA2 = TOL*SIGMA
       DESIG = -WORK2(INDRV6+N)
-
+         
       MAXITER = 30*(N-M+1)
       DO I = 1, MAXITER
 *     
@@ -217,11 +217,11 @@
             
             GO TO 700
          ENDIF
-         
+
          CALL DLARTG(A(N),SIGMA,C1,S1,T)
-         
+
          IF (B(N-1) .LE. TOL*T) THEN
-            
+         
             IF( ( C1.NE.ONE ) .OR. ( S1.NE.ZERO ) ) THEN
                CALL DROT(N0,SU(1,N),1,WORK(1,N),1,C1,S1)
             ENDIF
@@ -266,36 +266,69 @@
             GO TO 15
             
          ENDIF
-*     
+*
          IF (M .GT. OLDN .OR. N .LT. OLDM) THEN
             IF ( A(M) .LT. A(N) ) THEN
 
-               TMP1 = A(N)
-               IF (TMP1 .EQ. B(N-1)+TMP1) THEN
-                  B(N-1) = ZERO
-                  GO TO 15
-               ELSE
-                  TMP1 = A(N-1)*(TMP1/(TMP1+B(N-1)))
-               ENDIF
-               
-               IF (TMP1 .EQ. B(N-2)+TMP1) THEN
-                  B(N-2) = ZERO
-                  GO TO 15
-               ELSE
-                  TMP1 = A(N-2)*(TMP1/(TMP1+B(N-2)))
-               ENDIF
-               
-               M0 = M
-               DO J = N-3, M, -1
-                  IF (TMP1 .EQ. B(J)+TMP1) THEN
-                     B(J) = -SIGMA
-                     WORK2(INDRV6+J) = -DESIG
-                     IF (M0 .EQ. M) M0 = J+1
-                     TMP1 = A(J)
+               IF (SIGMA .GT. ZERO) THEN
+
+                  TMP1 = A(N)
+                  IF (B(N-1)+TMP1 .EQ. TMP1) THEN
+                     B(N-1) = ZERO
+                     GO TO 15
                   ELSE
-                     TMP1 = A(J)*(TMP1/(TMP1+B(J)))
+                     TMP1 = A(N-1)*(TMP1/(TMP1+B(N-1)))
                   ENDIF
-               ENDDO
+                  
+                  IF (B(N-2)+TMP1 .EQ. TMP1) THEN
+                     B(N-2) = ZERO
+                     GO TO 15
+                  ELSE
+                     TMP1 = A(N-2)*(TMP1/(TMP1+B(N-2)))
+                  ENDIF
+                  
+                  M0 = M
+                  DO J = N-3, M, -1
+                     IF (B(J)+TMP1 .EQ. TMP1) THEN
+                        B(J) = -SIGMA
+                        WORK2(INDRV6+J) = -DESIG
+                        IF (M0 .EQ. M) M0 = J+1
+                        TMP1 = A(J)
+                     ELSE
+                        TMP1 = A(J)*(TMP1/(TMP1+B(J)))
+                     ENDIF
+                  ENDDO
+
+               ELSE
+                  
+                  TMP1 = A(N)
+                  IF (B(N-1) .LE. TOL*TMP1) THEN
+                     B(N-1) = ZERO
+                     GO TO 15
+                  ELSE
+                     TMP1 = A(N-1)*(TMP1/(TMP1+B(N-1)))
+                  ENDIF
+                  
+                  IF (B(N-2) .LE. TOL*TMP1) THEN
+                     B(N-2) = ZERO
+                     GO TO 15
+                  ELSE
+                     TMP1 = A(N-2)*(TMP1/(TMP1+B(N-2)))
+                  ENDIF
+                  
+                  M0 = M
+                  DO J = N-3, M, -1
+                     IF (B(J) .LE. TOL*TMP1) THEN
+                        B(J) = -SIGMA
+                        WORK2(INDRV6+J) = -DESIG
+                        IF (M0 .EQ. M) M0 = J+1
+                        TMP1 = A(J)
+                     ELSE
+                        TMP1 = A(J)*(TMP1/(TMP1+B(J)))
+                     ENDIF
+                  ENDDO
+
+               ENDIF
                
                IF (M0 .NE. M) THEN
                   M = M0
@@ -327,11 +360,11 @@
                CALL DLASR( 'R', 'V', 'F', N0, N-M+1,
      $              WORK2(INDRV3+M), WORK2(INDRV4+M),
      $              WORK(1,M), N0 )
-
+*     
                GO TO 400
             ENDIF
          ENDIF
-*
+*     
          CALL DLAS2(A(N-1), B(N-1), A(N), TAU, TMP3)
          TAU = MIN(TAU,A(N))
          IF (TAU .EQ. ZERO) GO TO 350
@@ -636,7 +669,7 @@
             TMP1 = C1*A(J+1)
          ENDDO
          A(N) = TMP1
-*
+*     
          TMP1 = A(M)
          DO J = M, N-1
             CALL DLARTG(TMP1,B(J),C1,S1,A(J))
@@ -646,41 +679,70 @@
             TMP1 = C1*A(J+1)
          ENDDO
          A(N) = TMP1
-*     
+*
          CALL DLASR( 'R', 'V', 'F', N0, N-M+1,
      $        WORK2(INDRV7+M), WORK2(INDRV8+M),
      $        SU(1,M), N0 )
-*            
+*
          CALL DLASR( 'R', 'V', 'F', N0, N-M+1,
      $        WORK2(INDRV3+M), WORK2(INDRV4+M),
      $        WORK(1,M), N0 )
-*
+*     
  400     OLDM = M
          OLDN = N
 *
-         TMP1 = A(M)
-         DO J = M, N-3
-            IF (B(J) .LE. SIGMA2 .OR. TMP1 .EQ. B(J)+TMP1) THEN
-               B(J) = -SIGMA
-               WORK2(INDRV6+J) = -DESIG
-               M = J+1
-               TMP1 = A(J+1)
+         IF (SIGMA .GT. ZERO) THEN
+
+            TMP1 = A(M)
+            DO J = M, N-3
+               IF (B(J) .LE. SIGMA2 .OR. B(J)+TMP1 .EQ. TMP1) THEN
+                  B(J) = -SIGMA
+                  WORK2(INDRV6+J) = -DESIG
+                  M = J+1
+                  TMP1 = A(J+1)
+               ELSE
+                  TMP1 = A(J+1)*(TMP1/(TMP1+B(J)))
+               ENDIF
+            ENDDO
+            
+            IF (B(N-2) .LE. SIGMA2 .OR. B(N-2)+TMP1 .EQ. TMP1) THEN
+               B(N-2) = ZERO
+               TMP1 = A(N-1)
             ELSE
-               TMP1 = A(J+1)*(TMP1/(TMP1+B(J)))
+               TMP1 = A(N-1)*(TMP1/(TMP1+B(N-2)))
             ENDIF
-         ENDDO
-         
-         IF (B(N-2) .LE. SIGMA2 .OR. TMP1 .EQ. B(N-2)+TMP1) THEN
-            B(N-2) = ZERO
-            TMP1 = A(N-1)
+            
+            IF (B(N-1) .LE. SIGMA2 .OR. B(N-1)+TMP1 .EQ. TMP1) THEN
+               B(N-1) = ZERO
+            ENDIF
+
          ELSE
-            TMP1 = A(N-1)*(TMP1/(TMP1+B(N-2)))
-         ENDIF
          
-         IF (B(N-1) .LE. SIGMA2 .OR. TMP1 .EQ. B(N-1)+TMP1) THEN
-            B(N-1) = ZERO
+            TMP1 = A(M)
+            DO J = M, N-3
+               IF (B(J) .LE. TOL*TMP1) THEN
+                  B(J) = -SIGMA
+                  WORK2(INDRV6+J) = -DESIG
+                  M = J+1
+                  TMP1 = A(J+1)
+               ELSE
+                  TMP1 = A(J+1)*(TMP1/(TMP1+B(J)))
+               ENDIF
+            ENDDO
+            
+            IF (B(N-2) .LE. TOL*TMP1) THEN
+               B(N-2) = ZERO
+               TMP1 = A(N-1)
+            ELSE
+               TMP1 = A(N-1)*(TMP1/(TMP1+B(N-2)))
+            ENDIF
+            
+            IF (B(N-1) .LE. TOL*TMP1) THEN
+               B(N-1) = ZERO
+            ENDIF
+
          ENDIF
-*     
+*
       ENDDO
       INFO = 2
       RETURN
