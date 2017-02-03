@@ -65,13 +65,14 @@ int main(int argc, char *argv[]){
     return 0;
   }
 
+  //n0をスレッド分割する際に用いてるが,決め方がまずい
   n0 = (double)w/maxthreads;
 
   each = w / m;
   
   //入力内部生成なら1を,
   //外部から取り込むなら0を
-  if(0){
+  if(1){
     if(mode=='s'){
       ii=0;
       IAP[0]=1;

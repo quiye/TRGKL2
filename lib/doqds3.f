@@ -165,8 +165,6 @@
 *     
  15      IF (N-M+1 .EQ. 1) THEN
             
-            CALL DLARTG(A(N),SIGMA,C1,S1,TMP1)
-            
             CALL DLARTG7(SIGMA,DESIG,A(N),A(N),DESIG0)
             
             GO TO 700
@@ -222,7 +220,7 @@
             IF ( A(M) .LT. A(N) ) THEN
 
                IF (SIGMA .GT. ZERO) THEN
-
+                  
                   TMP1 = A(N)
                   IF (B(N-1)+TMP1 .EQ. TMP1) THEN
                      B(N-1) = ZERO
@@ -315,6 +313,15 @@
             ENDIF
          ENDIF
 *     
+         IF (A(N) .EQ. ZERO) GO TO 350
+         CALL DLARTG(SIGMA,A(N),C1,S1,T)
+         IF (T .LE. SIGMA) GO TO 350
+
+         TAU2 = MINVAL(A(M:N-1))
+         IF (TAU2 .EQ. ZERO) GO TO 350
+         CALL DLARTG(SIGMA,TAU2,C1,S1,T)
+         IF (T .LE. SIGMA) GO TO 350
+*
          CALL DLAS2(A(N-1), B(N-1), A(N), TAU, TMP3)
          TAU = MIN(TAU,A(N))
          IF (TAU .EQ. ZERO) GO TO 350
@@ -325,14 +332,10 @@
             SIT = 0
          ENDIF
          
-         CALL DLARTG7(SIGMA,DESIG,TAU,T,DESIG0)
+         CALL DLARTG(SIGMA,TAU,C1,S1,T)
          IF (T .LE. SIGMA .AND. SIT .EQ. 1) GO TO 350
-         
-         TAU2 = MINVAL(A(M:N-1))
+
          IF (TAU2 .LE. TAU) THEN
-            IF (TAU2 .EQ. ZERO) GO TO 350
-            CALL DLARTG7(SIGMA,DESIG,TAU2,T,DESIG0)
-            IF (T .LE. SIGMA .AND. SIT .EQ. 1) GO TO 350
             TAU1 = TAU2
             GO TO 160
          ELSE
@@ -422,8 +425,9 @@
          TAU=MIN(TAU,TMP2)
 *     
  125     IF (TAU .EQ. ZERO) GO TO 350
-         CALL DLARTG7(SIGMA,DESIG,TAU,T,DESIG0)
+         CALL DLARTG(SIGMA,TAU,C1,S1,T)
          IF (T .LE. SIGMA .AND. SIT .EQ. 1) GO TO 350
+         CALL DLARTG7(SIGMA,DESIG,TAU,T,DESIG0)
 *     
          IF (SIGMA .EQ. ZERO) THEN
 *     
@@ -520,7 +524,7 @@
                ELSE
                   TMP3 = SQRT(TMP4)*SQRT(TMP5)
                ENDIF
-
+               
             ENDDO
             CALL DLARTG(TMP3,B(N-1),C1,S1,WORK2(INDRV5+N-1))
             WORK2(INDRV7+N-1) = C1
@@ -568,12 +572,20 @@
          GO TO 400
 *     
  350     TMP1 = A(M)
+         CALL DLARTG(SIGMA,TMP1,C1,S1,T)
+         IF (T .LE. SIGMA) THEN
+            TMP1 = ZERO
+         ENDIF
          DO J = M, N-1
             CALL DLARTG(TMP1,B(J),C1,S1,A(J))
             WORK2(INDRV7+J) = C1
             WORK2(INDRV8+J) = S1
             B(J) = S1*A(J+1)
             TMP1 = C1*A(J+1)
+            CALL DLARTG(SIGMA,TMP1,C1,S1,T)
+            IF (T .LE. SIGMA) THEN
+               TMP1 = ZERO
+            ENDIF
          ENDDO
          A(N) = TMP1
 *     
@@ -620,7 +632,7 @@
             ENDIF
 
          ELSE
-         
+            
             TMP1 = A(M)
             DO J = M, N-3
                IF (B(J) .LE. TOL*TMP1) THEN
