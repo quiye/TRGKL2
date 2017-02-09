@@ -374,9 +374,8 @@
          CALL DLARTG(SIGMA,TAU2,C1,S1,T)
          IF (T .LE. SIGMA) GO TO 350
 *
-!         CALL DLAS2(A(N-1), B(N-1), A(N), TAU, TMP3)
-!         TAU = MIN(TAU,A(N))
-         TAU = A(N)!
+         CALL DLAS2(A(N-1), B(N-1), A(N), TAU, TMP3)
+         TAU = MIN(TAU,A(N))
          IF (TAU .EQ. ZERO) GO TO 350
          
          IF (TMP3 .GE. TWO*TAU) THEN
@@ -387,8 +386,12 @@
          
          CALL DLARTG(SIGMA,TAU,C1,S1,T)
          IF (T .LE. SIGMA .AND. SIT .EQ. 1) GO TO 350
+         CALL DLARTG7(SIGMA,DESIG,TAU,T,DESIG0)
+         IF (T .LE. SIGMA .AND. SIT .EQ. 1) GO TO 350
 
          IF (TAU2 .LE. TAU) THEN
+            CALL DLARTG7(SIGMA,DESIG,TAU2,T,DESIG0)
+            IF (T .LE. SIGMA .AND. SIT .EQ. 1) GO TO 350
             TAU1 = TAU2
             GO TO 160
          ELSE
@@ -481,6 +484,7 @@
          CALL DLARTG(SIGMA,TAU,C1,S1,T)
          IF (T .LE. SIGMA .AND. SIT .EQ. 1) GO TO 350
          CALL DLARTG7(SIGMA,DESIG,TAU,T,DESIG0)
+         IF (T .LE. SIGMA .AND. SIT .EQ. 1) GO TO 350
 *     
          IF (SIGMA .EQ. ZERO) THEN
 *     
@@ -714,18 +718,6 @@
      $           WORK2(INDRV7+M), WORK2(INDRV8+M),
      $           SU(1,M), N0 )
             
-         ELSE IF (FLAG .EQ. M-1) THEN
-
-            IF( ( WORK2(INDRV1+M).NE.ONE ) .OR.
-     $           ( WORK2(INDRV2+M).NE.ZERO ) ) THEN
-               CALL DROT(N0,SU(1,M),1,WORK(1,M),1,
-     $              WORK2(INDRV1+M),WORK2(INDRV2+M))
-            ENDIF
-
-            DO J = M, N-1
-               CALL DSWAP(N0,SU(1,J),1,SU(1,J+1),1)
-            ENDDO
-
          ELSE
 
             CALL DLASR( 'R', 'V', 'F', N0, (FLAG+1)-M+1,

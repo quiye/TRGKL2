@@ -5,7 +5,7 @@
 *.swp
 *.csv
 *~
-fileinput_gkl
+fileinput_gkl*
 sparse_nonsymm
 dense_nonsymm
 power
@@ -35,3 +35,4 @@ core*
 forkk
 kk
 forkimura
+nb0206

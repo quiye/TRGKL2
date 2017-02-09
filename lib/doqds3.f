@@ -334,8 +334,12 @@
          
          CALL DLARTG(SIGMA,TAU,C1,S1,T)
          IF (T .LE. SIGMA .AND. SIT .EQ. 1) GO TO 350
-
+         CALL DLARTG7(SIGMA,DESIG,TAU,T,DESIG0)
+         IF (T .LE. SIGMA .AND. SIT .EQ. 1) GO TO 350
+         
          IF (TAU2 .LE. TAU) THEN
+            CALL DLARTG7(SIGMA,DESIG,TAU2,T,DESIG0)
+            IF (T .LE. SIGMA .AND. SIT .EQ. 1) GO TO 350
             TAU1 = TAU2
             GO TO 160
          ELSE
@@ -428,6 +432,7 @@
          CALL DLARTG(SIGMA,TAU,C1,S1,T)
          IF (T .LE. SIGMA .AND. SIT .EQ. 1) GO TO 350
          CALL DLARTG7(SIGMA,DESIG,TAU,T,DESIG0)
+         IF (T .LE. SIGMA .AND. SIT .EQ. 1) GO TO 350
 *     
          IF (SIGMA .EQ. ZERO) THEN
 *     
