@@ -72,23 +72,20 @@ int main(int argc, char *argv[]){
   
   //入力内部生成なら1を,
   //外部から取り込むなら0を
-  if(1){
+  if(0){
     if(mode=='s'){
       ii=0;
       IAP[0]=1;
       for(tmp=0;tmp<w;tmp++){
-      //while(fscanf("%d %d %lf",&i,&j,&alpha) !=EOF){
         i = tmp / each;
         j = rand() % n;
         alpha = rand()/(double)RAND_MAX;
-        //printf("%d %d %30.20f\n",i,j,alpha);
         if(i!=ii){
           IAP[ii+1]=tmp+1;
           ii++;
         }
         JA[tmp]=j+1;
         A[tmp]=alpha;
-        //tmp++;
       }
       IAP[ii+1]=tmp+1;
     }
