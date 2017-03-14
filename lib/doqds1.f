@@ -286,14 +286,16 @@
                IF (SIGMA .GT. ZERO) THEN
                   
                   TMP1 = A(N)
-                  IF (B(N-1)+TMP1 .EQ. TMP1) THEN
+                  CALL DLARTG(SIGMA,TMP1,C1,S1,T)
+                  IF (B(N-1)+T .EQ. T) THEN
                      B(N-1) = ZERO
                      GO TO 15
                   ELSE
                      TMP1 = A(N-1)*(TMP1/(TMP1+B(N-1)))
                   ENDIF
                   
-                  IF (B(N-2)+TMP1 .EQ. TMP1) THEN
+                  CALL DLARTG(SIGMA,TMP1,C1,S1,T)
+                  IF (B(N-2)+T .EQ. T) THEN
                      B(N-2) = ZERO
                      GO TO 15
                   ELSE
@@ -302,7 +304,8 @@
                   
                   M0 = M
                   DO J = N-3, M, -1
-                     IF (B(J)+TMP1 .EQ. TMP1) THEN
+                     CALL DLARTG(SIGMA,TMP1,C1,S1,T)
+                     IF (B(J)+T .EQ. T) THEN
                         B(J) = -SIGMA
                         WORK2(INDRV6+J) = -DESIG
                         IF (M0 .EQ. M) M0 = J+1
@@ -388,7 +391,6 @@
          IF (T .LE. SIGMA) GO TO 350
 
          TAU2 = MINVAL(A(M:N-1))
-         IF (TAU2 .EQ. ZERO) GO TO 350
          CALL DLARTG(SIGMA,TAU2,C1,S1,T)
          IF (T .LE. SIGMA) GO TO 350
 *
@@ -401,7 +403,7 @@
          ELSE
             SIT = 0
          ENDIF
-         
+
          CALL DLARTG(SIGMA,TAU,C1,S1,T)
          IF (T .LE. SIGMA .AND. SIT .EQ. 1) GO TO 350
          CALL DLARTG7(SIGMA,DESIG,TAU,T,DESIG0)
@@ -723,7 +725,7 @@
             ENDIF
          ENDDO
          A(N) = TMP1
-*     
+*
          TMP1 = A(M)
          DO J = M, N-1
             CALL DLARTG(TMP1,B(J),C1,S1,A(J))
@@ -753,9 +755,9 @@
      $              WORK2(INDRV1+FLAG+1),WORK2(INDRV2+FLAG+1))
             ENDIF
 
-            DO J = FLAG+1, N-1
-               CALL DSWAP(N0,SU(1,J),1,SU(1,J+1),1)
-            ENDDO
+            CALL DLASR( 'R', 'V', 'F', N0, N-(FLAG+1)+1,
+     $           WORK2(INDRV7+FLAG+1), WORK2(INDRV8+FLAG+1),
+     $           SU(1,FLAG+1), N0 )
 
          ENDIF
 *     
@@ -775,7 +777,8 @@
 
             TMP1 = A(M)
             DO J = M, N-3
-               IF (B(J) .LE. SIGMA2 .OR. B(J)+TMP1 .EQ. TMP1) THEN
+               CALL DLARTG(SIGMA,TMP1,C1,S1,T)
+               IF (B(J) .LE. SIGMA2 .OR. B(J)+T .EQ. T) THEN
                   B(J) = -SIGMA
                   WORK2(INDRV6+J) = -DESIG
                   M = J+1
@@ -785,14 +788,16 @@
                ENDIF
             ENDDO
             
-            IF (B(N-2) .LE. SIGMA2 .OR. B(N-2)+TMP1 .EQ. TMP1) THEN
+            CALL DLARTG(SIGMA,TMP1,C1,S1,T)
+            IF (B(N-2) .LE. SIGMA2 .OR. B(N-2)+T .EQ. T) THEN
                B(N-2) = ZERO
                TMP1 = A(N-1)
             ELSE
                TMP1 = A(N-1)*(TMP1/(TMP1+B(N-2)))
             ENDIF
             
-            IF (B(N-1) .LE. SIGMA2 .OR. B(N-1)+TMP1 .EQ. TMP1) THEN
+            CALL DLARTG(SIGMA,TMP1,C1,S1,T)
+            IF (B(N-1) .LE. SIGMA2 .OR. B(N-1)+T .EQ. T) THEN
                B(N-1) = ZERO
             ENDIF
 
