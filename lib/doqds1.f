@@ -386,7 +386,6 @@
             ENDIF
          ENDIF
 *     
-         IF (A(N) .EQ. ZERO) GO TO 350
          CALL DLARTG(SIGMA,A(N),C1,S1,T)
          IF (T .LE. SIGMA) GO TO 350
 
